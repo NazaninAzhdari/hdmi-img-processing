@@ -40,8 +40,8 @@ architecture RTL of VGAsync is
             begin
                 if rising_edge(i_clk25) then
                     if i_reset = '1' then
-                        r_x <= '0';
-                        r_y <= '0';
+                        r_x <= 0;
+                        r_y <= 0;
                     else
                         if r_y < c_V_TOTAL -1 then
                             if r_x < c_H_TOTAL -1 then
