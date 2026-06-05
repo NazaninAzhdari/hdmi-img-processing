@@ -6,6 +6,7 @@ import sys
 #   1- Any image size: Automatically reads "width" × "height" from the PNG. (Remember to cut your pic to your desired pixel size)
 #   2- Any color format, you can choose:
 #       "GRAY8" → 8‑bit grayscale
+#       "RGB8"  → 3‑3‑2 RGB
 #       "RGB12" → 4‑4‑4 RGB
 #       "RGB16" → 5‑6‑5 RGB
 #       "RGB24" → 8‑8‑8 RGB
@@ -31,6 +32,12 @@ def convert_pixel(r, g, b, mode):
     if mode == "GRAY8":
         gray = (r + g + b) // 3
         return gray, 8
+    
+    elif mode == "RGB8":  # 3-3-2 format
+        r3 = r >> 5
+        g3 = g >> 5
+        b2 = b >> 6
+        return (r3 << 5) | (g3 << 2) | b2, 8
 
     elif mode == "RGB12":  # 4-4-4
         r4 = r >> 4
