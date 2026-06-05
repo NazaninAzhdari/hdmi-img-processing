@@ -87,8 +87,8 @@ architecture RTL of img_processing_top is
 
 
 				
-			r_adju_high <= resize( (unsigned(w_rom_video) * 3 / 4) , r_adju_high'length);
-			r_adju_low <= unsigned(w_rom_video) / 2;
+		r_adju_high <= resize( (unsigned(w_rom_video) * 3 / 4) , r_adju_high'length);
+		r_adju_low <= unsigned(w_rom_video) / 2;
 
         process(i_clk50) is
             begin
