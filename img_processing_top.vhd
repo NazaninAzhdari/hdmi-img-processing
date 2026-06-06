@@ -31,7 +31,7 @@ architecture RTL of img_processing_top is
     signal w_rom_video  :   STD_LOGIC_VECTOR(c_RGB_BIT_WIDTH-1 downto 0)    :=(others=>'0');
 	 
 	 
-	signal w_Red, w_Green, w_Blue  :  STD_LOGIC_VECTOR(7 downto 0)  :=(others=>'0');
+	signal w_Red, w_Green, w_Blue  :  unsigned(7 downto 0)  :=(others=>'0');
 	signal w_DE : STD_LOGIC  :='0';
 	 
 	 
@@ -84,19 +84,20 @@ architecture RTL of img_processing_top is
         adjusting_effect: entity work.adju_effect
         port map (
             i_clk50 => i_clk50,
-            i_reset => i_reset,
+            i_reset => not i_reset_L,
             i_button_L => i_button_L,
             i_x => w_x,
             i_y => w_y,
-            i_Red3 => w_rom_video(7 downto 5),
-            i_Green3 => w_rom_video(4 downto 2),
-            i_Blue2 => w_rom_video(1 downto 0),
+            i_Red3 => unsigned(w_rom_video(7 downto 5)),
+            i_Green3 => unsigned(w_rom_video(4 downto 2)),
+            i_Blue2 => unsigned(w_rom_video(1 downto 0)),
             o_Red8 => w_Red,
             o_Green8 => w_Green,
             o_Blue8 => w_Blue
         );
 
-        o_hdmi_video <= w_Red & w_Green & w_Blue when w_DE = '1' else (others=>'0');
+        o_hdmi_video <= STD_LOGIC_VECTOR(w_Red) & STD_LOGIC_VECTOR(w_Green) & STD_LOGIC_VECTOR(w_Blue) 
+		  when w_DE = '1' else (others=>'0');
 		o_hdmi_De <= w_DE;
 		o_hdmi_clk <= w_clk25;
 

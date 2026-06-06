@@ -19,10 +19,10 @@ entity adju_effect is
 end adju_effect;
 
 architecture RTL of adju_effect is
-    type t_color_machine is (REP_1, REP_2, REP_3, REP_4, PAD_1, PAD_2, PAD_3, PAD_4, REP_PAD_1, REP_PAD_2,
+    type t_color_machine is (REP_1, REP_2, REP_3, REP_4, PAD_1, PAD_2, PAD_3, PAD_4, PAD_REP_1, PAD_REP_2,
                             RED, GREEN, BLUE,SEA_GREEN, PURPLE, YELLOW,
-                            RGB_SCALE, GRAY_SCALE_1 , GRAY_SCALE_2, INVERT_RGB, INVERT_GRAY,
-                            SOLARIZE, BW_THRESHOLD, CHECKERBOARD_MASK, RAINBOW, CRT, INVERT_TINT, FIRE_EFFECT,
+                            RGB_SCALE, GRAY_SCALE_1 , GRAY_SCALE_2, INVERT_RGB, INVERT_GRAY_1, INVERT_GRAY_2,
+                            SOLARIZE, BW_THRESHOLD, SOLARIZE_2, BW_THRESHOLD_2, CHECKERBOARD_MASK, RAINBOW, CRT, INVERT_TINT, FIRE_EFFECT,
                             WARM_TINT, COOL_TINT
                             );
     signal r_picture_tone   :   t_color_machine     :=REP_1;
@@ -30,19 +30,22 @@ architecture RTL of adju_effect is
     signal r_gray           :   unsigned(2 downto 0) :=(others=>'0');
     signal r_brightness     :   unsigned(4 downto 0)  :=(others=>'0'); --big enough to hold the result
     signal r_y              :   integer range 0 to 479      :=0;
-
+	 signal sum_RGB 			:	integer  :=0;
+signal r255, g255, b255 : unsigned(11 downto 0)  :=(others=>'0');
     begin
 
-        r_gray <= resize( ((i_Red3 + i_Green3 + i_Blue2) / 3)  , r_gray'length);
-        r_brightness <= i_Red3 + i_Green3 + i_Blue2;
+		sum_RGB <= to_integer(i_Red3) + to_integer(i_Green3) + to_integer(i_Blue2);
+        r_gray <= to_unsigned((Sum_RGB / 3)  , r_gray'length);
+        r_brightness <= to_unsigned(sum_RGB, 5);
         r_y <= to_integer(i_y);
+		  
 
         process(i_clk50) is
             begin
                 if rising_edge(i_clk50) then
 					r_button_L <= i_button_L;
 
-                    if i_reset_L = '0' then 
+                    if i_reset = '1' then 
                         r_picture_tone <= REP_1;
                     else	
                         case r_picture_tone is
@@ -52,17 +55,17 @@ architecture RTL of adju_effect is
                                 o_Blue8  <= i_Blue2 & i_Blue2 & i_Blue2 & i_Blue2;
 
                                 if i_button_L = '1' and r_button_L = '0' then
-                                    r_picture_tone <= REP_2;
-                                end if;  
-
-                            when REP_2 => --scale the colors with repetition
-                                o_Red8   <= i_Red3 & i_Red3(2 downto 1) & i_Red3;
-                                o_Green8 <= i_Green3 & i_Green3(2 downto 1) & i_Green3;
-                                o_Blue8  <= i_Blue2 & i_Blue2 & i_Blue2 & i_Blue2;
-
-                                if i_button_L = '1' and r_button_L = '0' then
                                     r_picture_tone <= REP_3;
                                 end if;  
+
+                            --when REP_2 => --scale the colors with repetition  --not really change DELETE
+                              --  o_Red8   <= i_Red3 & i_Red3(2 downto 1) & i_Red3;
+                              --  o_Green8 <= i_Green3 & i_Green3(2 downto 1) & i_Green3;
+                              --  o_Blue8  <= i_Blue2 & i_Blue2 & i_Blue2 & i_Blue2;
+
+                              --  if i_button_L = '1' and r_button_L = '0' then
+                              --      r_picture_tone <= REP_3;
+                              --  end if;  
                                     
                             when REP_3 => --scale the colors with repetition
                                 o_Red8   <= i_Red3(2 downto 1) & i_Red3 & i_Red3;
@@ -82,7 +85,7 @@ architecture RTL of adju_effect is
                                     r_picture_tone <= PAD_1;
                                 end if;
                                         
-                            when PAD_1 => --scale the colors with padding bits 20 --posterize
+                            when PAD_1 => --scale the colors with padding bits 20 --posterize warm
                                 o_Red8   <= i_Red3 & "00000";
                                 o_Green8 <= i_Green3 & "00000";
                                 o_Blue8  <= i_Blue2 & "000000";
@@ -91,55 +94,56 @@ architecture RTL of adju_effect is
                                     r_picture_tone <= PAD_2;
                                 end if;
 
-                            when PAD_2 => --scale the colors with padding bits
+                            when PAD_2 => --scale the colors with padding bits -- posterize cool
                                 o_Red8   <= i_Red3 & "11111";
-                                o_Green8 <= i_Green3 & "11111";
+                                o_Green8 <= i_Green3 & "11111"; 
                                 o_Blue8  <= i_Blue2 & "111111";
 
                                 if i_button_L = '1' and r_button_L = '0' then
                                     r_picture_tone <= PAD_3;
                                 end if;
 
-                            when PAD_3 => --scale the colors with padding bits
-                                o_Red8   <= "00" & i_Red3 & "000";
-                                o_Green8 <= "00" & i_Green3 & "000";
-                                o_Blue8  <= "00" & i_Blue2 & "0000";
+                            when PAD_3 => --scale the colors with padding bits --too dark
+                                o_Red8   <= "0" & i_Red3 & "0000";
+                                o_Green8 <= "0" & i_Green3 & "0000";
+                                o_Blue8  <= "0" & i_Blue2 & "00000";
 
                                 if i_button_L = '1' and r_button_L = '0' then
                                     r_picture_tone <= PAD_4;
                                 end if;
 
-                            when PAD_4 => --scale the colors with padding bits
-                                o_Red8   <= "11" & i_Red3 & "111";
-                                o_Green8 <= "11" & i_Green3 & "111";
-                                o_Blue8  <= "11" & i_Blue2 & "1111";
-
-                                if i_button_L = '1' and r_button_L = '0' then
-                                    r_picture_tone <= PAD_REP_1;
-                                end if;
-
-                            when PAD_REP_1 => --scale the colors with padding bits and repetition
-                                o_Red8   <= i_Red3 & "00" & i_Red3;
-                                o_Green8 <= i_Green3 & "00" & i_Green3 ;
-                                o_Blue8  <= i_Blue2 & "00" & i_Blue2 & i_Blue2;
-
-                                if i_button_L = '1' and r_button_L = '0' then
-                                    r_picture_tone <= PAD_REP_2;
-                                end if;
-
-                            when PAD_REP_2 => --scale the colors with padding bits and repetition
-                                o_Red8   <= i_Red3 & "11" & i_Red3;
-                                o_Green8 <= i_Green3 & "11" & i_Green3 ;
-                                o_Blue8  <= i_Blue2 & "11" & i_Blue2 & i_Blue2;
+                            when PAD_4 => --scale the colors with padding bits --too bight
+                                o_Red8   <= "1" & i_Red3 & "1111";
+                                o_Green8 <= "1" & i_Green3 & "1111";
+                                o_Blue8  <= "1" & i_Blue2 & "11111";
 
                                 if i_button_L = '1' and r_button_L = '0' then
                                     r_picture_tone <= RGB_SCALE;
                                 end if;
+
+                            --when PAD_REP_1 => --scale the colors with padding bits and repetition --NOT REALLY CHANGE(WARM)
+                            --    o_Red8   <= i_Red3 & "00" & i_Red3;
+                             --   o_Green8 <= i_Green3 & "00" & i_Green3 ;
+                             --   o_Blue8  <= i_Blue2 & "00" & i_Blue2 & i_Blue2;
+
+                             --   if i_button_L = '1' and r_button_L = '0' then
+                             --       r_picture_tone <= PAD_REP_2;
+                             --   end if;
+
+                            --when PAD_REP_2 => --scale the colors with padding bits and repetition --NOT REALLY CHANGE(COOL)
+                            --    o_Red8   <= i_Red3 & "11" & i_Red3;
+                             --   o_Green8 <= i_Green3 & "11" & i_Green3 ;
+                              --  o_Blue8  <= i_Blue2 & "11" & i_Blue2 & i_Blue2;
+
+                             --   if i_button_L = '1' and r_button_L = '0' then
+                              --      r_picture_tone <= RGB_SCALE;
+                              --  end if;
                             
-                            when RGB_SCALE =>
-                                o_Red8   <= resize( (i_Red3 * 255 / 7) , o_Red8'length);
-                                o_Green8 <= resize( (i_Green3 * 255 / 7) , o_Green'length) ;
-                                o_Blue8  <= resize( (i_Blue2 * 255 / 3) , o_Blue'length);
+                            when RGB_SCALE => --nothing on screen
+											
+                                o_Red8   <= to_unsigned((to_integer(i_Red3) * 255 / 7),  8) ;
+                                o_Green8 <= to_unsigned((to_integer(i_green3) * 255 / 7), 8) ;
+                                o_Blue8  <= to_unsigned((to_integer(i_blue2) * 255 / 3) , 8) ;
 
                                 if i_button_L = '1' and r_button_L = '0' then
                                     r_picture_tone <= INVERT_RGB;
@@ -151,14 +155,14 @@ architecture RTL of adju_effect is
                                 o_Blue8  <= not (i_Blue2 & i_Blue2 & i_Blue2 & i_Blue2);
 
                                 if i_button_L = '1' and r_button_L = '0' then
-                                    r_picture_tone <= GRAY_SCALE;
+                                    r_picture_tone <= GRAY_SCALE_1;
                                 end if;
 
                             when GRAY_SCALE_1 =>
                                 --r_gray <= resize( ((i_Red3 + i_Green3 + i_Blue2) / 3)  , 3);
-                                o_Red8 <= r_gray & r_gray & r_gray;
-                                o_Green8 <= r_gray & r_gray & r_gray;
-                                o_Blue8 <= r_gray & r_gray & r_gray;
+                                o_Red8 <= r_gray & r_gray & r_gray(2 downto 1);
+                                o_Green8 <= r_gray & r_gray & r_gray(2 downto 1);
+                                o_Blue8 <= r_gray & r_gray & r_gray(2 downto 1);
 
                                 if i_button_L = '1' and r_button_L = '0' then
                                     r_picture_tone <= GRAY_SCALE_2;
@@ -170,10 +174,20 @@ architecture RTL of adju_effect is
                                 o_Blue8 <= i_Red3 & i_Green3 & i_Blue2;
 
                                 if i_button_L = '1' and r_button_L = '0' then
-                                    r_picture_tone <= INVERT_GRAY;
+                                    r_picture_tone <= INVERT_GRAY_1;
+                                end if;
+										  
+									when INVERT_GRAY_1 =>
+                                --r_gray <= resize( ((i_Red3 + i_Green3 + i_Blue2) / 3)  , 3);
+                                o_Red8 <= not (r_gray & r_gray & r_gray(2 downto 1));
+                                o_Green8 <= not (r_gray & r_gray & r_gray(2 downto 1));
+                                o_Blue8 <= not (r_gray & r_gray & r_gray(2 downto 1));
+
+                                if i_button_L = '1' and r_button_L = '0' then
+                                    r_picture_tone <= INVERT_GRAY_2;
                                 end if;
                             
-                            when INVERT_GRAY =>
+                            when INVERT_GRAY_2 =>
                                 o_Red8 <= not (i_Red3 & i_Green3 & i_Blue2);
                                 o_Green8 <= not (i_Red3 & i_Green3 & i_Blue2);
                                 o_Blue8 <= not (i_Red3 & i_Green3 & i_Blue2);	
@@ -238,8 +252,24 @@ architecture RTL of adju_effect is
                                 end if;
                             
                             when SOLARIZE =>
-                                --r_brightness <= i_Red3 + i_Green3 + i_Blue2;
+                                --r_brightness <= i_Red3 + i_Green3 + i_Blue2; --not really change(RGB)
                                 if r_brightness > 10 then
+                                    o_Red8   <= not (i_Red3 & i_Red3 & i_Red3(2 downto 1));
+                                    o_Green8 <= not (i_Green3 & i_Green3 & i_Green3(2 downto 1));
+                                    o_Blue8  <= not (i_Blue2 & i_Blue2 & i_Blue2 & i_Blue2);
+                                else
+                                    o_Red8   <= i_Red3 & i_Red3 & i_Red3(2 downto 1);
+                                    o_Green8 <= i_Green3 & i_Green3 & i_Green3(2 downto 1);
+                                    o_Blue8  <= i_Blue2 & i_Blue2 & i_Blue2 & i_Blue2;
+                                end if;
+
+                                if i_button_L = '1' and r_button_L = '0' then
+                                    r_picture_tone <= SOLARIZE_2;
+                                end if;
+										  
+									when SOLARIZE_2 =>
+                                --r_brightness <= i_Red3 + i_Green3 + i_Blue2; --not really change(RGB)
+                                if r_brightness > 5 then
                                     o_Red8   <= not (i_Red3 & i_Red3 & i_Red3(2 downto 1));
                                     o_Green8 <= not (i_Green3 & i_Green3 & i_Green3(2 downto 1));
                                     o_Blue8  <= not (i_Blue2 & i_Blue2 & i_Blue2 & i_Blue2);
@@ -253,9 +283,25 @@ architecture RTL of adju_effect is
                                     r_picture_tone <= BW_THRESHOLD;
                                 end if;
 
-                            when BW_THRESHOLD =>
+                            when BW_THRESHOLD => --black picture nothing on screen
                                 --r_brightness <= i_Red3 + i_Green3 + i_Blue2;
                                 if r_brightness > 10 then
+                                    o_Red8   <= (others=>'1');
+                                    o_Green8 <= (others=>'1');
+                                    o_Blue8  <= (others=>'1');
+                                else
+                                    o_Red8   <= (others=>'0');
+                                    o_Green8 <= (others=>'0');
+                                    o_Blue8  <= (others=>'0');
+                                end if;
+
+                                if i_button_L = '1' and r_button_L = '0' then
+                                    r_picture_tone <= BW_THRESHOLD_2;
+                                end if;
+										  
+										 when BW_THRESHOLD_2 => --black picture nothing on screen
+                                --r_brightness <= i_Red3 + i_Green3 + i_Blue2;
+                                if r_brightness > 5 then
                                     o_Red8   <= (others=>'1');
                                     o_Green8 <= (others=>'1');
                                     o_Blue8  <= (others=>'1');
@@ -271,9 +317,9 @@ architecture RTL of adju_effect is
 
                             when CHECKERBOARD_MASK =>
                                 if (i_x(4) xor i_y(4)) = '1' then
-                                    o_Red8   <= (i_Red3 & i_Red3 & i_Red3(2 downto 1)) / 2;
-                                    o_Green8 <= (i_Green3 & i_Green3 & i_Green3(2 downto 1)) / 2;
-                                    o_Blue8  <= (i_Blue2 & i_Blue2 & i_Blue2 & i_Blue2) / 2;
+                                    o_Red8   <= to_unsigned((to_integer((i_Red3 & i_Red3 & i_Red3(2 downto 1))) / 2), 8);
+                                    o_Green8 <= to_unsigned((to_integer((i_Green3 & i_Green3 & i_Green3(2 downto 1))) / 2), 8);
+                                    o_Blue8  <= to_unsigned((to_integer((i_Blue2 & i_Blue2 & i_Blue2 & i_Blue2)) / 2), 8);
                                 else
                                     o_Red8   <= i_Red3 & i_Red3 & i_Red3(2 downto 1);
                                     o_Green8 <= i_Green3 & i_Green3 & i_Green3(2 downto 1);
@@ -327,7 +373,8 @@ architecture RTL of adju_effect is
                                 end if;
                             
                             when INVERT_TINT =>
-                                o_Red8   <= resize( ((not (i_Red3 & i_Red3 & i_Red3(2 downto 1))) + 40) , o_Red8'length);
+                                --o_Red8   <= resize( ((not (i_Red3 & i_Red3 & i_Red3(2 downto 1))) + 40) , o_Red8'length);
+										  o_Red8   <= (not (i_Red3 & i_Red3 & i_Red3(2 downto 1))) + 40;
                                 o_Green8 <= not (i_Green3 & i_Green3 & i_Green3(2 downto 1));
                                 o_Blue8  <= not (i_Blue2 & i_Blue2 & i_Blue2 & i_Blue2);
 
@@ -335,27 +382,31 @@ architecture RTL of adju_effect is
                                     r_picture_tone <= FIRE_EFFECT;
                                 end if;
                             
-                            when FIRE_EFFECT =>
-                                r_brightness <= i_Red3 + i_Green3 + i_Blue2;
+                            when FIRE_EFFECT => --nothing on screen
+                                --r_brightness <= i_Red3 + i_Green3 + i_Blue2;
                                 
-                                o_Red8   <= resize( (r_brightness * 2), o_Red8'length);
-                                o_Green8 <= r_brightness;
-                                o_Blue8  <= r_brightness / 4;
+                                o_Red8   <= to_unsigned((sum_RGB * 20), 8);
+                                o_Green8 <= to_unsigned((sum_RGB * 10), 8);
+                                o_Blue8  <= to_unsigned((sum_RGB / 4), 8);
+										  
+										  if i_button_L = '1' and r_button_L = '0' then
+                                    r_picture_tone <= WARM_TINT;
+                                end if;
                         
 
-                            when WARM_TINT => --Warm Tint
+                            when WARM_TINT => --Warm Tint purple yellow
                                 o_Red8   <= i_Red3 & i_Green3 & i_Blue2;
-                                o_Green8 <= resize( ((i_Red3 & i_Green3 & i_Blue2) * 3 / 4) , o_Green8'length);
-                                o_Blue8  <= resize( ((i_Red3 & i_Green3 & i_Blue2) * 3 / 2) , o_Blue8'length);
+                                o_Green8 <= to_unsigned( (to_integer(i_Red3 & i_Green3 & i_Blue2) * 3 / 4) , o_Green8'length);
+                                o_Blue8  <= to_unsigned( (to_integer(i_Red3 & i_Green3 & i_Blue2) * 3 / 2) , o_Blue8'length);
                                         
                                 if i_button_L = '1' and r_button_L = '0' then
                                     r_picture_tone <= COOL_TINT;
                                 end if;
 
                             when COOL_TINT => --Coll Tint
-                                r_Red   <= resize( ((i_Red3 & i_Green3 & i_Blue2) * 3 / 2) , o_Blue8'length);
-                                r_Green <= resize( ((i_Red3 & i_Green3 & i_Blue2) * 3 / 4) , o_Green8'length);
-                                r_Blue  <= i_Red3 & i_Green3 & i_Blue2;
+                                o_Red8   <= to_unsigned( (to_integer(i_Red3 & i_Green3 & i_Blue2) * 3 / 2) , o_Blue8'length);
+                                o_Green8 <= to_unsigned( (to_integer(i_Red3 & i_Green3 & i_Blue2) * 3 / 4) , o_Green8'length);
+                                o_Blue8  <= i_Red3 & i_Green3 & i_Blue2;
                                         
                                 if i_button_L = '1' and r_button_L = '0' then
                                     r_picture_tone <= REP_1;
