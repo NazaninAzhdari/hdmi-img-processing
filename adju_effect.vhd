@@ -19,9 +19,9 @@ entity adju_effect is
 end adju_effect;
 
 architecture RTL of adju_effect is
-    signal i_effect_btn   :     STD_LOGIC                   :='0';
-    signal i_plus_btn     :     STD_LOGIC                   :='0';
-    signal i_minus_btn    :     STD_LOGIC                   :='0';
+    signal r_effect_btn   :     STD_LOGIC                   :='0';
+    signal r_plus_btn     :     STD_LOGIC                   :='0';
+    signal r_minus_btn    :     STD_LOGIC                   :='0';
     signal r_user_adju    :     integer range -100 to 100   :=0;
     
     begin
@@ -37,16 +37,16 @@ architecture RTL of adju_effect is
                     else
 
                         if i_effect_btn = '0' and r_effect_btn = '1' then
-                            r_user_adj <= 0;
+                            r_user_adju <= 0;
 
                         elsif i_plus_btn = '0' and r_plus_btn = '1' then
-                            if r_user_adj < 100 then
-                                r_user_adj <= r_user_adj + 1;
+                            if r_user_adju < 100 then
+                                r_user_adju <= r_user_adju + 10;
                             end if;
 
                         elsif i_minus_btn = '0' and r_minus_btn = '1' then
-                            if r_user_adj > -100 then
-                                r_user_adj <= r_user_adj - 1;
+                            if r_user_adju > -100 then
+                                r_user_adju <= r_user_adju - 10;
                             end if;
 
                         else
@@ -56,8 +56,9 @@ architecture RTL of adju_effect is
                 end if;
             end process;
 
-            o_Red8 <= to_unsigned( (to_integer(r_Red8) + r_user_adj)  ,  o_Red8'length);
-            o_Green8 <= to_unsigned( (to_integer(r_Green8) + r_user_adj)  ,  o_Green8'length);
-            o_Blue8 <= to_unsigned( (to_integer(r_Blue8) + r_user_adj)  ,  o_Blue8'length);
+            o_Red8 <= to_unsigned( (to_integer(i_Red8) + r_user_adju)  ,  o_Red8'length) when (to_integer(i_Red8) + r_user_adju) < 256  
+				else (others=>'1');
+            o_Green8 <= to_unsigned( (to_integer(i_Green8) + r_user_adju)  ,  o_Green8'length) when (to_integer(i_Green8) + r_user_adju) < 256  else (others=>'1');
+            o_Blue8 <= to_unsigned( (to_integer(i_Blue8) + r_user_adju)  ,  o_Blue8'length) when (to_integer(i_Blue8) + r_user_adju) < 256  else (others=>'1');
 
     end RTL;

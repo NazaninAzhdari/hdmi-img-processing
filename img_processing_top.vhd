@@ -122,7 +122,7 @@ architecture RTL of img_processing_top is
             i_effect_btn => not i_effect_btn_L,
             i_plus_btn => not i_plus_btn_L,
             i_minus_btn => not i_minus_btn_L,
-            i_Red8 => w_effect_red
+            i_Red8 => w_effect_red,
             i_Green8 => w_effect_green,
             i_Blue8 => w_effect_blue,
             o_Red8 => w_adju_red,
