@@ -18,7 +18,7 @@ entity effect_BW is
 end effect_BW;
 
 architecture RTL of effect_BW is
-    signal r_intensity :       integer range 0 to 256       :=128;
+    signal r_intensity :       integer range 0 to 100       :=50;
     signal r_plus_btn  :       STD_LOGIC                    :='0';
     signal r_minus_btn :       STD_LOGIC                    :='0';
 
@@ -27,22 +27,22 @@ architecture RTL of effect_BW is
             begin
                 if rising_edge(i_clk50) then
                     if i_reset = '1' then
-                        r_intensity <= 128;
+                        r_intensity <= 50;
                     else
                         if i_effect_En = '1' then
 
                             if i_plus_btn = '0' and r_plus_btn = '1' then --falling-edge of plus button
-                                if r_intensity < 256 then
-                                    r_intensity <= r_intensity + 16;
+                                if r_intensity < 100 then
+                                    r_intensity <= r_intensity + 10;
                                 end if;
                             elsif i_minus_btn = '0' and r_minus_btn = '1' then --falling-edge of minus button
                                 if r_intensity > 0 then
-                                    r_intensity <= r_intensity - 16;
+                                    r_intensity <= r_intensity - 10;
                                 end if;
                             end if;
 
                         else
-                            r_intensity <= 128;
+                            r_intensity <= 50;
                         end if; --if i_effect_En = '1' or else
 
                     end if; --if i_reset = '1' or else
@@ -52,9 +52,9 @@ architecture RTL of effect_BW is
             ---------------------
             --Control saturation
             ---------------------
-            o_Red8   <= (others=>'1') when (to_integer(i_RGB332) > r_intensity) else (others=>'0');
-            o_Green8 <= (others=>'1') when (to_integer(i_RGB332) > r_intensity) else (others=>'0');
-            o_Blue8  <= (others=>'1') when (to_integer(i_RGB332) > r_intensity) else (others=>'0'); 
+            o_Red8   <= (others=>'1') when (to_integer(i_RGB332) > (r_intensity + 78)) else (others=>'0');
+            o_Green8 <= (others=>'1') when (to_integer(i_RGB332) > (r_intensity + 78)) else (others=>'0');
+            o_Blue8  <= (others=>'1') when (to_integer(i_RGB332) > (r_intensity + 78)) else (others=>'0'); 
             --i_RGB332 can be a number between 0 to 255 
             --r_intensity can be a number between 0 to 256      
             

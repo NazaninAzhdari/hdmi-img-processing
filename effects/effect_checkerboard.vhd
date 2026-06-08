@@ -22,7 +22,7 @@ entity effect_checkerboard is
 end effect_checkerboard;
 
 architecture RTL of effect_checkerboard is
-    signal r_intensity :       integer range 0 to 8       :=4;
+    signal r_intensity :       integer range 0 to 8        :=4;
     signal r_plus_btn  :       STD_LOGIC                    :='0';
     signal r_minus_btn :       STD_LOGIC                    :='0';
 
@@ -42,6 +42,16 @@ architecture RTL of effect_checkerboard is
                             elsif i_minus_btn = '0' and r_minus_btn = '1' then --falling-edge of minus button
                                 if r_intensity > 0 then
                                     r_intensity <= r_intensity - 1;
+                                end if;
+                            end if;
+
+                            if i_plus_btn = '0' and r_plus_btn = '1' then --falling-edge of plus button
+                                if r_intensity < "11111111" then
+                                    r_intensity <= '1' & r_intensity(7 downto 1);
+                                end if;
+                            elsif i_minus_btn = '0' and r_minus_btn = '1' then --falling-edge of minus button
+                                if r_intensity > "00000000" then
+                                    r_intensity <= r_intensity(7 downto 1) & '0';
                                 end if;
                             end if;
 
