@@ -4,83 +4,60 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity effect_rainbow is
     port (
-        i_clk50     :   in      STD_LOGIC;
-        i_reset     :   in      STD_LOGIC;
-        i_effect_En :   in      STD_LOGIC;
-        i_plus_btn  :   in      STD_LOGIC;
-        i_minus_btn :   in      STD_LOGIC;
         i_y         :   in      unsigned(9 downto 0);
-        i_Red8      :   out     unsigned(7 downto 0);
-        i_Green8    :   out     unsigned(7 downto 0);
-        i_Blue8     :   out     unsigned(7 downto 0);
-        o_intensity :   out     unsigned(6 downto 0);
-        o_Red8      :   out     unsigned(7 downto 0);
-        o_Green8    :   out     unsigned(7 downto 0);
-        o_Blue8     :   out     unsigned(7 downto 0)
+        i_RGB332    :   in      unsigned(7 downto 0);
+        o_Pixel     :   out     unsigned(23 downto 0)
     );
 end effect_rainbow;
 
 architecture RTL of effect_rainbow is
-    signal r_intensity :       unsigned(7 downto 0)         :="11110000";
-    signal r_plus_btn  :       STD_LOGIC                    :='0';
-    signal r_minus_btn :       STD_LOGIC                    :='0';
-    signal r_y         :       integer                      :=0;
+    signal r_y        :   integer range 0 to 480  :=0;
+    signal r_Red8     :   unsigned(7 downto 0)    :=(others=>'0');
+    signal r_Green8   :   unsigned(7 downto 0)    :=(others=>'0');
+    signal r_Blue8    :   unsigned(7 downto 0)    :=(others=>'0');
 
     begin
-        i_y <= to_integer(i_y);
+        ---------------------------------------------------
+        --Converting a 8-bit RGB image to 24-bit RGB Scale
+        ---------------------------------------------------
+        --Note that: i_RGB332 == 3-bit-Red & 3-bit_Green & 2-bit_Blue
+        -- 3-bit_Red has 8 values between 0 to 7.   
+        -- 3-bit-Red * 36 => after conversion, 8-bit-Red has 7 values between 0 to 252. (0, 36, 72, 108, 144, 180, 216, 252)
+        -- 3-bit-Green has 8 values between 0 to 7.
+        -- 3-bit-Green * 36 => after conversion, 8-bit-Green has 7 values between 0 to 252. (0, 36, 72, 108, 144, 180, 216, 252)
+        -- 2-bit_Blue has 4 values between 0 to 3.
+        -- 2-bit-Red * 85 => after conversion, 8-bit-Blue has 4 values between 0 to 255. ( 0, 85, 170, 255)
+        r_Red8 <= to_unsigned((to_integer(i_RGB332(7 downto 5)) * 36), 8); 
+        r_Green8 <= to_unsigned((to_integer(i_RGB332(4 downto 2)) * 36) , 8);
+        r_Blue8 <= to_unsigned((to_integer(i_RGB332(1 downto 0)) * 85) , 8);
 
-        process(i_clk50) is
-            begin
-                if rising_edge(i_clk50) then
-                    if i_reset = '1' then
-                        r_intensity <= "11110000";
-                    else
-                        if i_effect_En = '1' then
+        r_y <= to_integer(i_y);
 
-                            if r_y < 80 then
-                                o_Red8   <= i_Red8;
-                                o_Green8 <= i_Green8 and r_intensity;
-                                o_Blue8  <= i_blue8 and r_intensity;
-                            elsif r_y < 160 then
-                                o_Red8   <= i_Red8 and r_intensity;
-                                o_Green8 <= i_Green8;
-                                o_Blue8  <= i_Blue8 and r_intensity;
-                            elsif r_y < 240 then
-                                o_Red8   <= i_Red8 and r_intensity;
-                                o_Green8 <= i_Green8 and r_intensity;
-                                o_Blue8  <= i_Blue8;
-                            elsif r_y < 320 then
-                                o_Red8   <= i_Red8 and r_intensity;
-                                o_Green8 <= i_Green8;
-                                o_Blue8  <= i_Blue8;
-                            elsif r_y < 400 then
-                                o_Red8   <= i_Red8;
-                                o_Green8 <= i_Green8 and r_intensity;
-                                o_Blue8  <= i_Blue8;
-                            else
-                                o_Red8   <= i_Red8;
-                                o_Green8 <= i_Green8;
-                                o_Blue8  <= i_Blue8 and r_intensity;;
-                            end if; 
+        --------------------------------------------
+        --Rainbow Tint Effect Based on Y position 
+        --------------------------------------------
+        --**Each goes to its corrosponding channel.**
+        --0   < r_y < 80    :   Red Tint => r_Red8 no change, r_Green8 / 2, r_Blue8 / 2 . 
+        --80  < r_y < 160   :   Orange Tint => r_Red8 no change, r_Green8 no chane, r_Blue8 / 2 . 
+        --160 < r_y < 240   :   Yellow Tint => r_Red8 no change, r_Green8 no chane, r_Blue8 / 4 .
+        --240 < r_y < 320   :   Green Tint => r_Red8 / 2, r_Green8 no chane, r_Blue8 / 2 .
+        --320 < r_y < 400   :   Blue Tint => r_Red8 / 2, r_Green8 / 2, r_Blue8 no change .
+        --400 < r_y < 480   :   Violet Tint => r_Red8 no change, r_Green8 / 4, r_Blue8 no change .
+        
 
-                            if i_plus_btn = '0' and r_plus_btn = '1' then --falling-edge of plus button
-                                if r_intensity < "11111111" then
-                                    r_intensity <= '1' & r_intensity(7 downto 1);
-                                end if;
-                            elsif i_minus_btn = '0' and r_minus_btn = '1' then --falling-edge of minus button
-                                if r_intensity > "00000000" then
-                                    r_intensity <= r_intensity(7 downto 1) & '0';
-                                end if;
-                            end if;
+        o_pixel(23 downto 16) <= i_Red8 when (r_y >= 0 and r_y < 240 ) or (r_y >= 400 and r_y < 480 ) else
+                                shift_right(i_Red8, 1) when (r_y >= 240 and r_y < 320 ) else
+                                shift_right(i_Red8, 2) when (r_y >= 320 and r_y < 400 ) else
+                                (others=>'0');
 
-                        else
-                            r_intensity <= "11110000";
-                        end if; --if i_effect_En = '1' or else
+        o_pixel(15 downto 8)  <= shift_right(i_Green8, 1) when (r_y >= 0 and r_y < 80 ) or (r_y >= 320 and r_y < 400 ) else
+                                i_Green8 when (r_y >= 80 and r_y < 320 ) else 
+                                shift_right(i_Green8, 2) when (r_y >= 400 and r_y < 480 ) else
+                                (others=>'0');
 
-                    end if; --if i_reset = '1' or else
-                end if; --if rising_edge
-            end process;
-            
-            o_intensity <= r_intensity;
+        o_pixel(7 downto 0)   <= shift_right(i_Blue8, 1) when (r_y >= 0 and r_y < 160 ) or (r_y >= 240 and r_y < 320 ) else
+                                shift_right(i_Blue8, 2) when (r_y >= 160 and r_y < 240 ) else 
+                                i_Blue8 when (r_y >= 320 and r_y < 480 ) else
+                                (others=>'0');
 
     end RTL;

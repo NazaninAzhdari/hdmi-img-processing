@@ -4,74 +4,43 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity effect_checkerboard is
     port (
-        i_clk50     :   in      STD_LOGIC;
-        i_reset     :   in      STD_LOGIC;
-        i_effect_En :   in      STD_LOGIC;
-        i_plus_btn  :   in      STD_LOGIC;
-        i_minus_btn :   in      STD_LOGIC;
         i_x         :   in      unsigned(9 downto 0);
         i_y         :   in      unsigned(9 downto 0);
-        i_Red8      :   in      unsigned(7 downto 0);
-        i_Green8    :   in      unsigned(7 downto 0);
-        i_Blue8     :   in      unsigned(7 downto 0);
-        o_intensity :   out     unsigned(6 downto 0);
-        o_Red8      :   out     unsigned(7 downto 0);
-        o_Green8    :   out     unsigned(7 downto 0);
-        o_Blue8     :   out     unsigned(7 downto 0)
+        i_RGB332    :   in      unsigned(7 downto 0);
+        o_Pixel     :   out     unsigned(23 downto 0)
     );
 end effect_checkerboard;
 
 architecture RTL of effect_checkerboard is
-    signal r_intensity :       integer range 0 to 8        :=4;
-    signal r_plus_btn  :       STD_LOGIC                    :='0';
-    signal r_minus_btn :       STD_LOGIC                    :='0';
+    signal r_Red8     :   unsigned(7 downto 0)    :=(others=>'0');
+    signal r_Green8   :   unsigned(7 downto 0)    :=(others=>'0');
+    signal r_Blue8    :   unsigned(7 downto 0)    :=(others=>'0');
 
     begin
-        process(i_clk50) is
-            begin
-                if rising_edge(i_clk50) then
-                    if i_reset = '1' then
-                        r_intensity <= 4;
-                    else
-                        if i_effect_En = '1' then
+        ---------------------------------------------------
+        --Converting a 8-bit RGB image to 24-bit RGB Scale
+        ---------------------------------------------------
+        --Note that: i_RGB332 == 3-bit-Red & 3-bit_Green & 2-bit_Blue
+        -- 3-bit_Red has 8 values between 0 to 7.   
+        -- 3-bit-Red * 36 => after conversion, 8-bit-Red has 7 values between 0 to 252. (0, 36, 72, 108, 144, 180, 216, 252)
+        -- 3-bit-Green has 8 values between 0 to 7.
+        -- 3-bit-Green * 36 => after conversion, 8-bit-Green has 7 values between 0 to 252. (0, 36, 72, 108, 144, 180, 216, 252)
+        -- 2-bit_Blue has 4 values between 0 to 3.
+        -- 2-bit-Red * 85 => after conversion, 8-bit-Blue has 4 values between 0 to 255. ( 0, 85, 170, 255)
+        r_Red8 <= to_unsigned((to_integer(i_RGB332(7 downto 5)) * 36), 8); 
+        r_Green8 <= to_unsigned((to_integer(i_RGB332(4 downto 2)) * 36) , 8);
+        r_Blue8 <= to_unsigned((to_integer(i_RGB332(1 downto 0)) * 85) , 8);
 
-                            if i_plus_btn = '0' and r_plus_btn = '1' then --falling-edge of plus button
-                                if r_intensity < 8 then
-                                    r_intensity <= r_intensity + 1;
-                                end if;
-                            elsif i_minus_btn = '0' and r_minus_btn = '1' then --falling-edge of minus button
-                                if r_intensity > 0 then
-                                    r_intensity <= r_intensity - 1;
-                                end if;
-                            end if;
+        ------------------------
+        --Checkerboard Effect
+        ------------------------
+        --i_Red8/i_Green8/i_Blue8 could be a number between 0 to 255.
+        --shift_right(i_Red8/i_Green8/i_Blue8 , 1) == (i_Red8/i_Green8/i_Blue8 ) / 2.
+        --In the areas that (i_x(4) xor i_y(4)) = '1' , the i_Red8/i_Green8/i_Blue8 will be divided by two. (goes toward darkness)
+        --and this make a checkerboard effect on the picture.
 
-                            if i_plus_btn = '0' and r_plus_btn = '1' then --falling-edge of plus button
-                                if r_intensity < "11111111" then
-                                    r_intensity <= '1' & r_intensity(7 downto 1);
-                                end if;
-                            elsif i_minus_btn = '0' and r_minus_btn = '1' then --falling-edge of minus button
-                                if r_intensity > "00000000" then
-                                    r_intensity <= r_intensity(7 downto 1) & '0';
-                                end if;
-                            end if;
-
-                        else
-                            r_intensity <= 4;
-                        end if; --if i_effect_En = '1' or else
-
-                    end if; --if i_reset = '1' or else
-                end if; --if rising_edge
-            end process;
-            
-            ---------------------
-            --Control saturation
-            ---------------------
-            o_Red8   <= to_unsigned((shift_right(i_Red8) , r_intensity), 8) when (i_x(4) xor i_y(4)) = '1' else i_Red8;
-            o_Green8 <= to_unsigned((shift_right(i_Green8) , r_intensity), 8) when (i_x(4) xor i_y(4)) = '1' else i_Green8;
-            o_Blue8  <= to_unsigned((shift_right(i_Blue8) , r_intensity), 8) when (i_x(4) xor i_y(4)) = '1' else i_Blue8;
-            --r_intensity can be a number between 0 to 8 
-            --we are dividing the RGB by 2^r_intensity => 1 , 2, 4, 8, 16, 32, 64, 128, 256     
-            
-            o_intensity <= to_unsigned(r_intensity, o_intensity'length);
+        o_pixel(23 downto 16) <= resize(shift_right(r_Red8 , 1 ), 8) when (i_x(4) xor i_y(4)) = '1' else r_Red8;
+        o_pixel(15 downto 8)  <= resize(shift_right(r_Green8 , 1 ), 8) when (i_x(4) xor i_y(4)) = '1' else r_Green8;
+        o_pixel(7 downto 0)   <= resize(shift_right(r_Blue8 , 1 ), 8) when (i_x(4) xor i_y(4)) = '1' else r_Blue8;
 
     end RTL;

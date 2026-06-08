@@ -4,65 +4,31 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity effect_CRT is
     port (
-        i_clk50     :   in      STD_LOGIC;
-        i_reset     :   in      STD_LOGIC;
-        i_effect_En :   in      STD_LOGIC;
-        i_plus_btn  :   in      STD_LOGIC;
-        i_minus_btn :   in      STD_LOGIC;
-        i_x         :   in      unsigned(9 downto 0);
         i_y         :   in      unsigned(9 downto 0);
-        i_Red8      :   in      unsigned(7 downto 0);
-        i_Green8    :   in      unsigned(7 downto 0);
-        i_Blue8     :   in      unsigned(7 downto 0);
-        o_intensity :   out     unsigned(6 downto 0);
-        o_Red8      :   out     unsigned(7 downto 0);
-        o_Green8    :   out     unsigned(7 downto 0);
-        o_Blue8     :   out     unsigned(7 downto 0)
+        i_RGB332    :   in      unsigned(7 downto 0);
+        o_Pixel     :   out     unsigned(23 downto 0)
     );
 end effect_CRT;
 
 architecture RTL of effect_CRT is
-    signal r_intensity :       integer range 0 to 8       :=4;
-    signal r_plus_btn  :       STD_LOGIC                    :='0';
-    signal r_minus_btn :       STD_LOGIC                    :='0';
-
+    signal r_Red8     :   unsigned(7 downto 0)    :=(others=>'0');
+    signal r_Green8   :   unsigned(7 downto 0)    :=(others=>'0');
+    signal r_Blue8    :   unsigned(7 downto 0)    :=(others=>'0');
     begin
-        process(i_clk50) is
-            begin
-                if rising_edge(i_clk50) then
-                    if i_reset = '1' then
-                        r_intensity <= 4;
-                    else
-                        if i_effect_En = '1' then
 
-                            if i_plus_btn = '0' and r_plus_btn = '1' then --falling-edge of plus button
-                                if r_intensity < 8 then
-                                    r_intensity <= r_intensity + 1;
-                                end if;
-                            elsif i_minus_btn = '0' and r_minus_btn = '1' then --falling-edge of minus button
-                                if r_intensity > 0 then
-                                    r_intensity <= r_intensity - 1;
-                                end if;
-                            end if;
-
-                        else
-                            r_intensity <= 4;
-                        end if; --if i_effect_En = '1' or else
-
-                    end if; --if i_reset = '1' or else
-                end if; --if rising_edge
-            end process;
-            
-            ---------------------
-            --Control saturation
-            ---------------------
-            o_Red8   <= to_unsigned((shift_right(i_Red8) , r_intensity), 8) when i_y(0) = '1' else i_Red8;
-            o_Green8 <= to_unsigned((shift_right(i_Green8) , r_intensity), 8) when i_y(0) = '1' else i_Green8;
-            o_Blue8  <= to_unsigned((shift_right(i_Blue8) , r_intensity), 8) when i_y(0) = '1' else i_Blue8;
-            --r_intensity can be a number between 0 to 8 
-            --we are dividing the RGB by 2^r_intensity => 1 , 2, 4, 8, 16, 32, 64, 128, 256  
-            
-            
-            o_intensity <= to_unsigned(r_intensity, o_intensity'length);
+        -----------------------------------------------------
+        --Convert RGB332 to RGB888 by replicating the bits
+        -----------------------------------------------------
+        r_Red8 <= i_RGB332(7 downto 5) & i_RGB332(7 downto 5) & i_RGB332(7 downto 6);
+        r_Green8 <= i_RGB332(4 downto 2) & i_RGB332(4 downto 2) & i_RGB332(4 downto 3);
+        r_Blue8 <= i_RGB332(1 downto 0) & i_RGB332(1 downto 0) & i_RGB332(1 downto 0) & i_RGB332(1 downto 0);
+        
+        --------------
+        --CRT Effect
+        --------------
+        --To get this effect we divide the pixel color by two in areas that i_y(0)= '1'
+        o_pixel(23 downto 16) <= shift_right(r_Red8 , 1) when i_y(0) = '1' else r_Red8;
+        o_pixel(15 downto 8)  <= shift_right(r_Green8 , 1) when i_y(0) = '1' else r_Green8;
+        o_pixel(7 downto 0)   <= shift_right(r_Blue8 , 1) when i_y(0) = '1' else r_Blue8;
 
     end RTL;
