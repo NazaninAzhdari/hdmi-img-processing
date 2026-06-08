@@ -11,11 +11,21 @@ end effect_grayscale_averaged;
 
 architecture RTL of effect_grayscale_averaged is
     signal r_gray           :   unsigned(2 downto 0)    :=(others=>'0');
-	signal sum_RGB 			:	integer                 :=0;
+    signal r_gray_avg       :   integer range 0 to 6    :=0;
+	signal sum_RGB 			:	integer range 0 to 17   :=0;
 
     begin
+        --------------------------------
+        --Averaged Gray-Scale Effect
+        --------------------------------
+        --Note that: i_RGB332 == 3-bit-Red & 3-bit_Green & 2-bit_Blue
+        --Sum_RGB has a value between 0 to 17.
+        --r_gray_avg can have a value btween 0 to 5.
+        --r_gray value would be between 000 to 101
+
         sum_RGB <= to_integer(i_RGB332(7 downto 5)) + to_integer(i_RGB332(4 downto 2)) + to_integer(i_RGB332(1 downto 0));
-        r_gray <= to_unsigned((Sum_RGB / 3)  , r_gray'length);
+        r_gray_avg <= Sum_RGB / 3;
+        r_gray <= to_unsigned(r_gray_avg  , r_gray'length);
 
         o_pixel(23 downto 16) <= r_gray & r_gray & r_gray(2 downto 1);
         o_pixel(15 downto 8)  <= r_gray & r_gray & r_gray(2 downto 1);

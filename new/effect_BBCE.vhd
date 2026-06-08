@@ -13,8 +13,15 @@ end effect_BBCE;
 
 architecture RTL of effect_BBCE is
     begin
-        
-        --bright‑biased color expansion
+        --------------------------------
+        --Bright‑biased color expansion
+        --------------------------------
+        --Note that: i_RGB332 == 3-bit-Red & 3-bit_Green & 2-bit_Blue
+
+        --To get this effect:
+        --8-bit Red     <= 2-bit-Red(Remove LSB) & 3-bit-Red & 3-bit-Red
+        --8-bit Green   <= 2-bit-Green(Remove LSB) & 3-bit-Green & 3-bit-Green
+        --8-bit Blue    <= 2-bit-Blue & 2-bit-Blue & 2-bit-Blue & 2-bit-Blue
         o_pixel(23 downto 16) <= i_RGB332(7 downto 6) & i_RGB332(7 downto 5) & i_RGB332(7 downto 5);
         o_pixel(15 downto 8)  <= i_RGB332(4 downto 3) & i_RGB332(4 downto 2) & i_RGB332(4 downto 2);
         o_pixel(7 downto 0)   <= i_RGB332(1 downto 0) & i_RGB332(1 downto 0) & i_RGB332(1 downto 0) & i_RGB332(1 downto 0);
