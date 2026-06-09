@@ -18,7 +18,7 @@ architecture RTL of LFSR8 is
         process(i_clk) is
             begin
                 if rising_edge(i_clk) then
-                    if i_reset = '1' else
+                    if i_reset = '1' then
                         r_lfsr <= (others=>'0');
                     else
                         r_lfsr <= r_lfsr(r_lfsr'left- 1 downto 0) & r_xnor;

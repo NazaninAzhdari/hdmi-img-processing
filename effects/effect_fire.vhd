@@ -36,7 +36,7 @@ architecture RTL of effect_fire is
                                 else (others=>'1');
 
         --Medium Green
-        o_pixel(15 downto 8)  <= r_Gx8 when r_Gx8  < 256  else
+        o_pixel(15 downto 8)  <= r_Gx8 when r_Gx8  < 256  
                                 else (others=>'1');
 
         --Weak Blue

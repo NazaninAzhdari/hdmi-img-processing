@@ -9,8 +9,6 @@ entity control_effects is
         i_x             :   in      unsigned(9 downto 0);
         i_y             :   in      unsigned(9 downto 0);
         i_RGB332        :   in      unsigned(7 downto 0);
-        i_mirror_RGB332 :   in      unsigned(7 downto 0);
-        i_pixelize_RGB332 :   in      unsigned(7 downto 0);
         o_pixel         :   out     unsigned(23 downto 0)
     );
 end control_effects;
@@ -312,9 +310,6 @@ architecture RTL of control_effects is
         --Fade Effect
         ---------------------------------------------
         apply_fade_effect: entity work.effect_fade
-        generic map(
-            g_FADE => 50
-        )
         port map(
             i_RGB332 => i_RGB332,
             o_Pixel => w_fade_pixel
@@ -342,18 +337,18 @@ architecture RTL of control_effects is
         ---------------------------------------------
         --No Effect (Mirror)
         ---------------------------------------------
-        no_effect: entity work.no_effect
+       mirror: entity work.no_effect
         port map(
-            i_RGB332 => i_mirror_RGB332,
+            i_RGB332 => i_RGB332,
             o_Pixel => w_Mirror_RGB888
         );
 
         ---------------------------------------------
         --No Effect (Pixelize)
         ---------------------------------------------
-        no_effect: entity work.no_effect
+        pixelize: entity work.no_effect
         port map(
-            i_RGB332 => i_pixelize_RGB332,
+            i_RGB332 => i_RGB332,
             o_Pixel => w_pixelize_RGB888
         );
 

@@ -27,15 +27,20 @@ architecture RTL of img_processing_top is
 
     signal w_clk25              :   STD_LOGIC                                       :='0';
     signal w_X, w_y             :   unsigned(9 downto 0)                            :=(others=>'0');
+	 
     signal r_addr_int           :   integer range 0 to c_IMG_SIZE-1                 :=0;
     signal r_rom_addr           :   STD_LOGIC_VECTOR(c_ADDR_BIT_WIDTH -1 downto 0)  :=(others=>'0');
     signal w_rom_video          :   STD_LOGIC_VECTOR(c_RGB_BIT_WIDTH-1 downto 0)    :=(others=>'0'); 
+	 signal r_real_addr_int           :   integer range 0 to c_IMG_SIZE-1                 :=0;
+    signal r_real_rom_addr           :   STD_LOGIC_VECTOR(c_ADDR_BIT_WIDTH -1 downto 0)  :=(others=>'0');
+    --signal w_real_rom_video          :   STD_LOGIC_VECTOR(c_RGB_BIT_WIDTH-1 downto 0)    :=(others=>'0');
     signal r_mirror_addr_int           :   integer range 0 to c_IMG_SIZE-1                 :=0;
     signal r_mirror_rom_addr           :   STD_LOGIC_VECTOR(c_ADDR_BIT_WIDTH -1 downto 0)  :=(others=>'0');
-    signal w_mirror_rom_video          :   STD_LOGIC_VECTOR(c_RGB_BIT_WIDTH-1 downto 0)    :=(others=>'0'); 
+    --signal w_mirror_rom_video          :   STD_LOGIC_VECTOR(c_RGB_BIT_WIDTH-1 downto 0)    :=(others=>'0'); 
     signal r_pixelize_addr_int           :   integer range 0 to c_IMG_SIZE-1                 :=0;
     signal r_pixelize_rom_addr           :   STD_LOGIC_VECTOR(c_ADDR_BIT_WIDTH -1 downto 0)  :=(others=>'0');
-    signal w_pixelize_rom_video          :   STD_LOGIC_VECTOR(c_RGB_BIT_WIDTH-1 downto 0)    :=(others=>'0'); 
+    --signal w_pixelize_rom_video          :   STD_LOGIC_VECTOR(c_RGB_BIT_WIDTH-1 downto 0)    :=(others=>'0'); 
+	 
 	signal w_DE                 :   STD_LOGIC                                       :='0';
     signal w_effected_pixel     :   unsigned(23 downto 0)                           :=(others=>'0');
     signal w_select_effect      :   unsigned(4 downto 0)                            :=(others=>'0');
@@ -148,18 +153,8 @@ architecture RTL of img_processing_top is
         --      . . .            |       .
         --     (639, 479)        |      307199
 
-        r_addr_int <= to_integer(w_y)* c_IMG_WIDTH + to_integer(w_x);
-        r_rom_addr <= STD_LOGIC_VECTOR(to_unsigned(r_addr_int, r_rom_addr'length));
-
-        -----------------------
-        --ROM Instantiation
-        -----------------------
-        rom_instantce: entity work.img_rom
-        port map (
-            address	=> r_rom_addr,
-            clock => i_clk50,
-            q => w_rom_video
-        );
+        r_real_addr_int <= to_integer(w_y)* c_IMG_WIDTH + to_integer(w_x);
+        r_real_rom_addr <= STD_LOGIC_VECTOR(to_unsigned(r_real_addr_int, r_real_rom_addr'length));
 
         ----------------------------------------------------------
         --Computing the Address line of the ROM in Flipping Order
@@ -179,16 +174,6 @@ architecture RTL of img_processing_top is
 
         r_mirror_addr_int <= to_integer(w_y)* c_IMG_WIDTH + to_integer(639 - w_x);
         r_mirror_rom_addr <= STD_LOGIC_VECTOR(to_unsigned(r_mirror_addr_int, r_mirror_rom_addr'length));
-
-        -----------------------
-        --ROM Instantiation
-        -----------------------
-        rom_instantce: entity work.img_rom
-        port map (
-            address	=> r_mirror_rom_addr,
-            clock => i_clk50,
-            q => w_mirror_rom_video
-        );
 
         -----------------------------------------------------------------------
         --Manipulating the Address line of the ROM to get a Pixelize rendering
@@ -216,17 +201,20 @@ architecture RTL of img_processing_top is
         --      . . .            |       .
         --     (639, 479)        |      307199
 
-        r_pixelize_addr_int <= to_integer(w_y(w_y'left downto 2))* c_IMG_WIDTH + to_integer(w_x(w_x'left downto 2));
+        r_pixelize_addr_int <= to_integer(w_y(w_y'left downto 2) & "00")* c_IMG_WIDTH + to_integer(w_x(w_x'left downto 2) & "00");
         r_pixelize_rom_addr <= STD_LOGIC_VECTOR(to_unsigned(r_pixelize_addr_int, r_pixelize_rom_addr'length));
 
+		  r_rom_addr <= r_mirror_rom_addr when w_select_effect = "10110" else
+							  r_pixelize_rom_addr when w_select_effect = "10111" else
+							  r_real_rom_addr;
         -----------------------
         --ROM Instantiation
         -----------------------
         rom_instantce: entity work.img_rom
         port map (
-            address	=> r_pixelize_rom_addr,
+            address	=> r_rom_addr,
             clock => i_clk50,
-            q => w_pixelize_rom_video
+            q => w_rom_video
         );
 
         ---------------------------
@@ -239,8 +227,6 @@ architecture RTL of img_processing_top is
             i_x => w_x,
             i_y => w_y,
             i_RGB332 => unsigned(w_Rom_video),
-            i_mirror_RGB332 => unsigned(w_mirror_Rom_video),
-            i_pixelize_RGB332 => unsigned(w_pixelize_Rom_video),
             o_pixel => w_effected_pixel
         );
 

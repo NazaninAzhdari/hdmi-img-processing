@@ -36,22 +36,22 @@ architecture RTL of effect_TV_noise is
         B_noise <= w_LFSR;                 --Strong Blue 
 
         
-        o_pixel(23 downto 16) <= to_unsigned((to_integer(r_Red8) + R_noise) , 8) when (to_integer(r_Red8) + R_noise) < 256 else 
-                                (others=>'1') when (to_integer(r_Red8) + R_noise) >= 256 else
+        o_pixel(23 downto 16) <= to_unsigned((to_integer(r_Red8) + to_integer(R_noise)) , 8) when (to_integer(r_Red8) + to_integer(R_noise)) < 256 else 
+                                (others=>'1') when (to_integer(r_Red8) + to_integer(R_noise)) >= 256 else
                                 (others=>'0');
 
-        o_pixel(15 downto 8)  <= to_unsigned((to_integer(r_Green8) + G_noise) , 8) when (to_integer(r_Green8) + G_noise) < 256 else 
-                                (others=>'1') when (to_integer(r_Green8) + G_noise) >= 256 else
+        o_pixel(15 downto 8)  <= to_unsigned((to_integer(r_Green8) + to_integer(G_noise)) , 8) when (to_integer(r_Green8) + to_integer(G_noise)) < 256 else 
+                                (others=>'1') when (to_integer(r_Green8) + to_integer(G_noise)) >= 256 else
                                 (others=>'0');
 
-        o_pixel(7 downto 0)   <= to_unsigned((to_integer(r_Blue8) + B_noise) , 8) when (to_integer(r_Blue8) + B_noise) < 256 else 
-                                (others=>'1') when (to_integer(r_Blue8) + B_noise) >= 256 else
+        o_pixel(7 downto 0)   <= to_unsigned((to_integer(r_Blue8) + to_integer(B_noise)) , 8) when (to_integer(r_Blue8) + to_integer(B_noise)) < 256 else 
+                                (others=>'1') when (to_integer(r_Blue8) + to_integer(B_noise)) >= 256 else
                                 (others=>'0');
 
         -----------------------------------
         --Generate Random Number by LFSR-8
         -----------------------------------
-        gen_random_num: entity woek.LFSR8
+        gen_random_num: entity work.LFSR8
         port map(
             i_clk   => i_clk50,
             i_reset => '0',
