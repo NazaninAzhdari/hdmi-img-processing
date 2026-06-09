@@ -17,9 +17,10 @@ entity img_processing_top is
 end img_processing_top;
 
 architecture RTL of img_processing_top is
+constant c_DEBOUNCE_LIMIT   :   integer     :=5000000; --0.1 Sec. with 50MHz Clock
     signal w_clk25              :   STD_LOGIC                                       :='0';
     signal w_X, w_y             :   unsigned(9 downto 0)                            :=(others=>'0');
-    signal w_rom_video          :   STD_LOGIC_VECTOR(c_RGB_BIT_WIDTH-1 downto 0)    :=(others=>'0');  
+    signal w_rom_video          :   STD_LOGIC_VECTOR(7 downto 0)    :=(others=>'0');  
 	signal w_DE                 :   STD_LOGIC                                       :='0';
     signal w_effected_pixel     :   unsigned(23 downto 0)                           :=(others=>'0');
     signal w_select_effect      :   unsigned(4 downto 0)                            :=(others=>'0');

@@ -8,18 +8,18 @@ entity read_rom is
         i_select_effect :   in      unsigned(4 downto 0);
         i_x             :   in      unsigned(9 downto 0);
         i_y             :   in      unsigned(9 downto 0);
-		o_rom_video     :   out     unsigned(7 downto 0)
+		o_rom_video     :   out     STD_LOGIC_VECTOR(7 downto 0)
     );
 end read_rom;
 
-architecture RTL of img_processing_top is
+architecture RTL of read_rom is
     --Image specifications
     constant c_IMG_WIDTH        :   integer     :=640;
     constant c_IMG_HEIGHT       :   integer     :=480;
     constant c_IMG_SIZE         :   integer     :=c_IMG_WIDTH * c_IMG_HEIGHT; --307200 pixels
     constant c_ADDR_BIT_WIDTH   :   integer     :=19; --Number of bits required to represent pixels from 0 to 307200
     constant c_RGB_BIT_WIDTH    :   integer     :=8;
-    constant c_DEBOUNCE_LIMIT   :   integer     :=5000000; --0.1 Sec. with 50MHz Clock
+    
 
 	 
     signal r_addr_int           :   integer range 0 to c_IMG_SIZE-1                 :=0;
