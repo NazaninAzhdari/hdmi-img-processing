@@ -9,6 +9,8 @@ entity control_effects is
         i_x             :   in      unsigned(9 downto 0);
         i_y             :   in      unsigned(9 downto 0);
         i_RGB332        :   in      unsigned(7 downto 0);
+        i_mirror_RGB332 :   in      unsigned(7 downto 0);
+        i_pixelize_RGB332 :   in      unsigned(7 downto 0);
         o_pixel         :   out     unsigned(23 downto 0)
     );
 end control_effects;
@@ -36,7 +38,12 @@ architecture RTL of control_effects is
     signal w_RGB_cycling_pixel      :   unsigned(23 downto 0)    :=(others=>'0');
     signal w_solarize_pixel         :   unsigned(23 downto 0)    :=(others=>'0');
     signal w_warm_tint_pixel        :   unsigned(23 downto 0)    :=(others=>'0');
-        
+    signal w_Mirror_RGB888          :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_pixelize_RGB888        :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_contrast_pixel         :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_fade_pixel             :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_TV_noise_pixel         :   unsigned(23 downto 0)    :=(others=>'0');
+
     begin
 
         process(i_clk50) is
@@ -65,11 +72,11 @@ architecture RTL of control_effects is
                         when "10011" => o_pixel <= w_RGB_cycling_pixel;
                         when "10100" => o_pixel <= w_solarize_pixel;
                         when "10101" => o_pixel <= w_warm_tint_pixel;
-                        --when "10110" => o_pixel <= 
-                        --when "10111" => o_pixel <= 
-                        --when "11000" => o_pixel <= 
-                        --when "11001" => o_pixel <= 
-                        --when "11010" => o_pixel <= 
+                        when "10110" => o_pixel <= w_Mirror_RGB888;
+                        when "10111" => o_pixel <= w_pixelize_RGB888;
+                        when "11000" => o_pixel <= w_contrast_pixel;
+                        when "11001" => o_pixel <= w_fade_pixel;
+                        when "11010" => o_pixel <= w_TV_noise_pixel;
                         --when "11011" => o_pixel <= 
                         --when "11100" => o_pixel <= 
                         --when "11101" => o_pixel <= 
@@ -290,12 +297,65 @@ architecture RTL of control_effects is
         );
 
         ---------------------------------------------
-        --No Effect
+        --Contrast Effect
+        ---------------------------------------------
+        apply_contrast_effect: entity work.effect_contrast
+        generic map(
+            g_CONTRAST => 2
+        )
+        port map(
+            i_RGB332 => i_RGB332,
+            o_Pixel=> w_contrast_pixel
+        );
+
+        ---------------------------------------------
+        --Fade Effect
+        ---------------------------------------------
+        apply_fade_effect: entity work.effect_fade
+        generic map(
+            g_FADE => 50
+        )
+        port map(
+            i_RGB332 => i_RGB332,
+            o_Pixel => w_fade_pixel
+        );
+
+        ---------------------------------------------
+        --TV noise Effect
+        ---------------------------------------------
+        apply_tv_noise_effect: entity work.effect_TV_noise
+        port map(
+            i_clk50 => i_clk50,
+            i_RGB332 => i_RGB332,
+            o_Pixel => w_TV_noise_pixel
+        );
+
+        ---------------------------------------------
+        --No Effect (Normal)
         ---------------------------------------------
         no_effect: entity work.no_effect
         port map(
             i_RGB332 => i_RGB332,
             o_Pixel => w_RGB888
         );
+
+        ---------------------------------------------
+        --No Effect (Mirror)
+        ---------------------------------------------
+        no_effect: entity work.no_effect
+        port map(
+            i_RGB332 => i_mirror_RGB332,
+            o_Pixel => w_Mirror_RGB888
+        );
+
+        ---------------------------------------------
+        --No Effect (Pixelize)
+        ---------------------------------------------
+        no_effect: entity work.no_effect
+        port map(
+            i_RGB332 => i_pixelize_RGB332,
+            o_Pixel => w_pixelize_RGB888
+        );
+
 
     end RTL;
