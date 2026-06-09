@@ -13,7 +13,8 @@ architecture RTL of effect_cool_tint is
     signal r_Red8     :   unsigned(7 downto 0)    :=(others=>'0');
     signal r_Green8   :   unsigned(7 downto 0)    :=(others=>'0');
     signal r_Blue8    :   unsigned(7 downto 0)    :=(others=>'0');
-
+	signal r_Bx3   :   unsigned(15 downto 0)    :=(others=>'0');
+    signal r_Rx3    :   unsigned(15 downto 0)    :=(others=>'0');
     begin
         -----------------------------------------------------
         --Convert RGB332 to RGB888 by replicating the bits
@@ -29,14 +30,29 @@ architecture RTL of effect_cool_tint is
         --o_Red8   <= i_Red8                   Red becomes weak *0.75 (approx)
         --o_Green8 <= (i_Green8 * 3 / 2)       Green Become more stronger *1.5  (approx)
         --o_Blue8  <= (i_Blue8 * 3 / 4)        Blue stays strong
-        
-        o_pixel(23 downto 16) <= to_unsigned( shift_right((r_Red8 * 3) , 2) , 8) 
-                            when to_unsigned( shift_right((r_Red8 * 3) , 2) , 8) < 256 
-                            else (others=>'1');
-
-        o_pixel(15 downto 8)  <= to_unsigned( shift_right((r_Green8 * 3) , 1) , 8) 
-                            when to_unsigned( shift_right((r_Green8 * 3) , 1) , 8) > 0 
+		  
+		  r_Bx3 <= r_Blue8 * 3;
+		  r_Rx3 <= r_Red8 * 3;
+		  
+        o_pixel(23 downto 16) <= resize(shift_right(r_Rx3 , 2) , 8)
+                            when resize(shift_right(r_Rx3 , 2) , 8) > 0
                             else (others=>'0');
+									 
+        o_pixel(15 downto 8)  <= r_Green8;
 
-        o_pixel(7 downto 0)   <= r_blue8;
+        o_pixel(7 downto 0)   <= resize( shift_right(r_Bx3 , 1) , 8) 
+                            when resize( shift_right(r_Bx3 , 1) , 8) < 256
+                            else (others=>'1');
+									 
+									 
+--o_pixel(23 downto 16) <= resize(shift_right(r_Rx3 , 2) , 8)
+                     --       when resize(shift_right(r_Rx3 , 2) , 8) < 256 
+                     --       else (others=>'1');
+									 
+       -- o_pixel(15 downto 8)  <= r_Green8;
+
+       -- o_pixel(7 downto 0)   <= resize( shift_right(r_Bx3 , 1) , 8) 
+                    --        when resize( shift_right(r_Bx3 , 1) , 8) > 0 
+                    --        else (others=>'0');
+        
     end RTL;

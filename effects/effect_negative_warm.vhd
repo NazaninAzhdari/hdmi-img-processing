@@ -4,7 +4,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity effect_negative_warm is
     generic (
-        g_WARM_TINT     :   integer     :=50;   --could be a number between 0 to 255
+        g_WARM_TINT     :   integer     :=50   --could be a number between 0 to 255
     );
     port (
         i_RGB332    :   in      unsigned(7 downto 0);

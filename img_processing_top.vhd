@@ -6,15 +6,13 @@ entity img_processing_top is
     port (
         i_clk50         :   in      STD_LOGIC;
         i_reset_L       :   in      STD_LOGIC;
-        i_effect_btn_L  :   in      STD_LOGIC;
-        i_plus_btn_L    :   in      STD_LOGIC;
-        i_minus_btn_L   :   in      STD_LOGIC;
-
-		o_hdmi_CLK 	:	out     STD_LOGIC;
-        o_hdmi_DE   :   out     STD_LOGIC;
-        o_hdmi_VS   :   out     STD_LOGIC;
-        o_hdmi_HS   :   out     STD_LOGIC;
-        o_hdmi_video:   out     unsigned(23 downto 0)
+        i_select        :   in      unsigned(4 downto 0);
+        o_LEDs          :   out     unsigned(4 downto 0);
+		o_hdmi_CLK 	    :	out     STD_LOGIC;
+        o_hdmi_DE       :   out     STD_LOGIC;
+        o_hdmi_VS       :   out     STD_LOGIC;
+        o_hdmi_HS       :   out     STD_LOGIC;
+        o_hdmi_video    :   out     unsigned(23 downto 0)
     );
 end img_processing_top;
 
@@ -25,18 +23,17 @@ architecture RTL of img_processing_top is
     constant c_IMG_SIZE         :   integer     :=c_IMG_WIDTH * c_IMG_HEIGHT; --307200 pixels
     constant c_ADDR_BIT_WIDTH   :   integer     :=19; --Number of bits required to represent pixels from 0 to 307200
     constant c_RGB_BIT_WIDTH    :   integer     :=8;
+    constant c_DEBOUNCE_LIMIT   :   integer     :=5000000; --0.1 Sec. with 50MHz Clock
 
     signal w_clk25              :   STD_LOGIC                                       :='0';
     signal w_X, w_y             :   unsigned(9 downto 0)                            :=(others=>'0');
     signal r_addr_int           :   integer range 0 to c_IMG_SIZE-1                 :=0;
     signal r_rom_addr           :   STD_LOGIC_VECTOR(c_ADDR_BIT_WIDTH -1 downto 0)  :=(others=>'0');
     signal w_rom_video          :   STD_LOGIC_VECTOR(c_RGB_BIT_WIDTH-1 downto 0)    :=(others=>'0'); 
-	signal w_effect_Red, w_effect_Green, w_effect_Blue:  unsigned(7 downto 0)                            :=(others=>'0');
 	signal w_DE                 :   STD_LOGIC                                       :='0';
-    signal w_adju_Red, w_adju_Green, w_adju_Blue:  unsigned(7 downto 0)                            :=(others=>'0');
+    signal w_effected_pixel     :   unsigned(23 downto 0)                           :=(others=>'0');
+    signal w_select_effect      :   unsigned(4 downto 0)                            :=(others=>'0');
 
-	 
-	 
     begin
         ----------------------------------
         --Dividing the frequency of clock
@@ -48,6 +45,71 @@ architecture RTL of img_processing_top is
         port map (
             i_clk => i_clk50, --50MHz
             o_clk => w_clk25  --25MHz
+        );
+
+        ----------------------------
+        --Debouncing the switch 0
+        ----------------------------
+        debounce_switch_0: entity work.debounce_filter
+        generic map(
+            g_DEBOUNCE_LIMIT => c_DEBOUNCE_LIMIT
+        )
+        port map(
+            i_clk => i_clk50,
+            i_bouncy => i_select(0),
+            o_debounced => w_select_effect(0)
+        );
+
+        ---------------------------
+        --Debouncing the switch 1
+        ---------------------------
+        debounce_switch_1: entity work.debounce_filter
+        generic map(
+            g_DEBOUNCE_LIMIT => c_DEBOUNCE_LIMIT
+        )
+        port map(
+            i_clk => i_clk50,
+            i_bouncy => i_select(1),
+            o_debounced => w_select_effect(1)
+        );
+
+        ----------------------------
+        --Debouncing the switch 2
+        ----------------------------
+        debounce_switch_2: entity work.debounce_filter
+        generic map(
+            g_DEBOUNCE_LIMIT => c_DEBOUNCE_LIMIT
+        )
+        port map(
+            i_clk => i_clk50,
+            i_bouncy => i_select(2),
+            o_debounced => w_select_effect(2)
+        );
+
+        ---------------------------
+        --Debouncing the switch 3
+        ---------------------------
+        debounce_switch_3: entity work.debounce_filter
+        generic map(
+            g_DEBOUNCE_LIMIT => c_DEBOUNCE_LIMIT
+        )
+        port map(
+            i_clk => i_clk50,
+            i_bouncy => i_select(3),
+            o_debounced => w_select_effect(3)
+        );
+
+        ----------------------------
+        --Debouncing the switch 4
+        ----------------------------
+        debounce_switch_4: entity work.debounce_filter
+        generic map(
+            g_DEBOUNCE_LIMIT => c_DEBOUNCE_LIMIT
+        )
+        port map(
+            i_clk => i_clk50,
+            i_bouncy => i_select(4),
+            o_debounced => w_select_effect(4)
         );
 
         ----------------------
@@ -94,46 +156,22 @@ architecture RTL of img_processing_top is
             q => w_rom_video
         );
 
-        ----------------------------------------------------------------------
-        --Applying different effects on image by manupulating the color scale
-        ----------------------------------------------------------------------
-        applying_effect: entity work.apply_effect
-        port map (
-            i_clk50 => i_clk50,
-            i_reset => not i_reset_L,
-            i_effect_btn => not i_effect_btn_L,
+        ---------------------------
+        --Apply Effect on Image 
+        ---------------------------
+        applying_effect: entity work.control_effects
+        port map(
+            i_clk50  => i_clk50,
+            i_select_effect => w_select_effect,
             i_x => w_x,
             i_y => w_y,
-            i_Red3 => unsigned(w_rom_video(7 downto 5)),
-            i_Green3 => unsigned(w_rom_video(4 downto 2)),
-            i_Blue2 => unsigned(w_rom_video(1 downto 0)),
-            o_Red8 => w_effect_Red,
-            o_Green8 => w_effect_Green,
-            o_Blue8 => w_effect_Blue
+            i_RGB332 => unsigned(w_Rom_video),
+            o_pixel => w_effected_pixel
         );
 
-        ----------------------------------------------
-        --adjusting effects
-        --------------------------------------------
-        adjusting_effect: entity work.adju_effect
-        port map(
-            i_clk50 => i_clk50,
-            i_reset => not i_reset_L,
-            i_effect_btn => not i_effect_btn_L,
-            i_plus_btn => not i_plus_btn_L,
-            i_minus_btn => not i_minus_btn_L,
-            i_Red8 => w_effect_red,
-            i_Green8 => w_effect_green,
-            i_Blue8 => w_effect_blue,
-            o_Red8 => w_adju_red,
-            o_Green8 => w_adju_green,
-            o_Blue8 => w_adju_blue
-        );
-
-        
-
-        o_hdmi_video <= w_adju_Red & w_adju_Green & w_adju_Blue when w_DE = '1' else (others=>'0');
+        o_hdmi_video <= w_effected_pixel when w_DE = '1' else (others=>'0');
 		o_hdmi_De <= w_DE;
 		o_hdmi_clk <= w_clk25;
+        o_LEDs <= w_select_effect;
 
     end RTL;

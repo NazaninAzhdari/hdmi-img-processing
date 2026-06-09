@@ -14,28 +14,28 @@ entity control_effects is
 end control_effects;
 
 architecture RTL of control_effects is
-    signal w_RGB888                 :   unsigned(7 downto 0)    :=(others=>'0');
-    signal w_BBCE_pixel             :   unsigned(7 downto 0)    :=(others=>'0');
-    signal w_bright_pixel           :   unsigned(7 downto 0)    :=(others=>'0');
-    signal w_BW_pixel               :   unsigned(7 downto 0)    :=(others=>'0');
-    signal w_checkerboard_pixel     :   unsigned(7 downto 0)    :=(others=>'0');
-    signal w_cool_tint_pixel        :   unsigned(7 downto 0)    :=(others=>'0');
-    signal w_CRT_pixel              :   unsigned(7 downto 0)    :=(others=>'0');
-    signal w_dark_pixel             :   unsigned(7 downto 0)    :=(others=>'0');
-    signal w_DBCE_pixel             :   unsigned(7 downto 0)    :=(others=>'0');
-    signal w_fire_pixel             :   unsigned(7 downto 0)    :=(others=>'0');
-    signal w_avg_gray_pixel         :   unsigned(7 downto 0)    :=(others=>'0');
-    signal w_mix_gray_pixel         :   unsigned(7 downto 0)    :=(others=>'0');
-    signal w_inv_avg_gray_pixel     :   unsigned(7 downto 0)    :=(others=>'0');
-    signal w_inv_mix_gray_pixel     :   unsigned(7 downto 0)    :=(others=>'0');
-    signal w_warm_negative_pixel    :   unsigned(7 downto 0)    :=(others=>'0');
-    signal w_negative_pixel         :   unsigned(7 downto 0)    :=(others=>'0');
-    signal w_cool_posterize_pixel   :   unsigned(7 downto 0)    :=(others=>'0');
-    signal w_warm_posterize_pixel   :   unsigned(7 downto 0)    :=(others=>'0');
-    signal w_rainbow_pixel          :   unsigned(7 downto 0)    :=(others=>'0');
-    signal w_RGB_cycling_pixel      :   unsigned(7 downto 0)    :=(others=>'0');
-    signal w_solarize_pixel         :   unsigned(7 downto 0)    :=(others=>'0');
-    signal w_warm_tint_pixel        :   unsigned(7 downto 0)    :=(others=>'0');
+    signal w_RGB888                 :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_BBCE_pixel             :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_bright_pixel           :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_BW_pixel               :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_checkerboard_pixel     :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_cool_tint_pixel        :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_CRT_pixel              :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_dark_pixel             :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_DBCE_pixel             :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_fire_pixel             :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_avg_gray_pixel         :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_mix_gray_pixel         :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_inv_avg_gray_pixel     :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_inv_mix_gray_pixel     :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_warm_negative_pixel    :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_negative_pixel         :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_cool_posterize_pixel   :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_warm_posterize_pixel   :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_rainbow_pixel          :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_RGB_cycling_pixel      :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_solarize_pixel         :   unsigned(23 downto 0)    :=(others=>'0');
+    signal w_warm_tint_pixel        :   unsigned(23 downto 0)    :=(others=>'0');
         
     begin
 
@@ -60,22 +60,22 @@ architecture RTL of control_effects is
                         when "01110" => o_pixel <= w_warm_negative_pixel;
                         when "01111" => o_pixel <= w_negative_pixel;
                         when "10000" => o_pixel <= w_cool_posterize_pixel;
-                        when "10001" => o_pixel <= w_warm_posterize_pixel;;
+                        when "10001" => o_pixel <= w_warm_posterize_pixel;
                         when "10010" => o_pixel <= w_rainbow_pixel;
                         when "10011" => o_pixel <= w_RGB_cycling_pixel;
                         when "10100" => o_pixel <= w_solarize_pixel;
                         when "10101" => o_pixel <= w_warm_tint_pixel;
-                        when "10110" => o_pixel <= 
-                        when "10111" => o_pixel <= 
-                        when "11000" => o_pixel <= 
-                        when "11001" => o_pixel <= 
-                        when "11010" => o_pixel <= 
-                        when "11011" => o_pixel <= 
-                        when "11100" => o_pixel <= 
-                        when "11101" => o_pixel <= 
-                        when "11110" => o_pixel <=
-                        when "11111" => o_pixel <= 
-                        when others =>
+                        --when "10110" => o_pixel <= 
+                        --when "10111" => o_pixel <= 
+                        --when "11000" => o_pixel <= 
+                        --when "11001" => o_pixel <= 
+                        --when "11010" => o_pixel <= 
+                        --when "11011" => o_pixel <= 
+                        --when "11100" => o_pixel <= 
+                        --when "11101" => o_pixel <= 
+                        --when "11110" => o_pixel <=
+                        --when "11111" => o_pixel <= 
+                        when others => o_pixel <= w_RGB888;
                     end case;
                 end if;
             end process;
@@ -130,7 +130,7 @@ architecture RTL of control_effects is
         apply_cool_tint_effect: entity work.effect_cool_tint
         port map(
             i_RGB332 => i_RGB332,
-            o_Pixel => o_cool_tint_pixel
+            o_Pixel => w_cool_tint_pixel
         );
 
         ---------------------------------------
@@ -139,7 +139,7 @@ architecture RTL of control_effects is
         apply_CRT_effect: entity work.effect_CRT
         port map(
             i_y => i_y,
-            i_RGB332 => i_x,
+            i_RGB332 => i_RGB332,
             o_Pixel => w_CRT_pixel
         );
 
@@ -148,7 +148,7 @@ architecture RTL of control_effects is
         ---------------------------------------
         apply_darkness_effect: entity work.effect_dark
         generic map(
-            g_DARK => 128
+            g_DARK => 64
         )
         port map(
             i_RGB332 => i_RGB332,
@@ -227,7 +227,7 @@ architecture RTL of control_effects is
         apply_negative_effect: entity work.effect_negative
         port map(
             i_RGB332 => i_RGB332,
-            o_Pixel => w_negtive_pixel
+            o_Pixel => w_negative_pixel
         );
 
         ---------------------------------------------
@@ -275,7 +275,7 @@ architecture RTL of control_effects is
         generic map(
             g_THRESHOLD => 5
         )
-        port (
+        port map(
             i_RGB332 => i_RGB332,
             o_Pixel => w_solarize_pixel
         );

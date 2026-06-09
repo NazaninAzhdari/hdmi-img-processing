@@ -4,7 +4,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity effect_dark is
     generic (
-        g_DARK      :   integer     :=128; --Shoud be a positive number between 0 to 255  
+        g_DARK      :   integer     :=128 --Shoud be a positive number between 0 to 255  
     );
     port (
         i_RGB332    :   in      unsigned(7 downto 0);

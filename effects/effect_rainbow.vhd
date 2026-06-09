@@ -45,19 +45,19 @@ architecture RTL of effect_rainbow is
         --400 < r_y < 480   :   Violet Tint => r_Red8 no change, r_Green8 / 4, r_Blue8 no change .
         
 
-        o_pixel(23 downto 16) <= i_Red8 when (r_y >= 0 and r_y < 240 ) or (r_y >= 400 and r_y < 480 ) else
-                                shift_right(i_Red8, 1) when (r_y >= 240 and r_y < 320 ) else
-                                shift_right(i_Red8, 2) when (r_y >= 320 and r_y < 400 ) else
+        o_pixel(23 downto 16) <= r_Red8 when (r_y >= 0 and r_y < 240 ) or (r_y >= 400 and r_y < 480 ) else
+                                shift_right(r_Red8, 1) when (r_y >= 240 and r_y < 320 ) else
+                                shift_right(r_Red8, 2) when (r_y >= 320 and r_y < 400 ) else
                                 (others=>'0');
 
-        o_pixel(15 downto 8)  <= shift_right(i_Green8, 1) when (r_y >= 0 and r_y < 80 ) or (r_y >= 320 and r_y < 400 ) else
-                                i_Green8 when (r_y >= 80 and r_y < 320 ) else 
-                                shift_right(i_Green8, 2) when (r_y >= 400 and r_y < 480 ) else
+        o_pixel(15 downto 8)  <= shift_right(r_Green8, 1) when (r_y >= 0 and r_y < 80 ) or (r_y >= 320 and r_y < 400 ) else
+                                r_Green8 when (r_y >= 80 and r_y < 320 ) else 
+                                shift_right(r_Green8, 2) when (r_y >= 400 and r_y < 480 ) else
                                 (others=>'0');
 
-        o_pixel(7 downto 0)   <= shift_right(i_Blue8, 1) when (r_y >= 0 and r_y < 160 ) or (r_y >= 240 and r_y < 320 ) else
-                                shift_right(i_Blue8, 2) when (r_y >= 160 and r_y < 240 ) else 
-                                i_Blue8 when (r_y >= 320 and r_y < 480 ) else
+        o_pixel(7 downto 0)   <= shift_right(r_Blue8, 1) when (r_y >= 0 and r_y < 160 ) or (r_y >= 240 and r_y < 320 ) else
+                                shift_right(r_Blue8, 2) when (r_y >= 160 and r_y < 240 ) else 
+                                r_Blue8 when (r_y >= 320 and r_y < 480 ) else
                                 (others=>'0');
 
     end RTL;
