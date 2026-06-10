@@ -72,6 +72,7 @@ def png_to_mif(input_png, output_mif, mode):
 
     # Convert first pixel to detect bit width
     _, bit_width = convert_pixel(*pixels[0, 0], mode)
+    hex_digits = (bit_width + 3) // 4
 
     depth = width * height
 
@@ -87,7 +88,7 @@ def png_to_mif(input_png, output_mif, mode):
             for x in range(width):
                 r, g, b = pixels[x, y]
                 value, _ = convert_pixel(r, g, b, mode)
-                f.write(f"    {addr} : {value:X};\n")
+                f.write(f"    {addr} : {value:0{hex_digits}X};\n")
                 addr += 1
 
         f.write("END;\n")

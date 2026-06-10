@@ -18,7 +18,7 @@ def convert_txt_to_png(txt_filename, png_filename, width=640, height=480):
                 idx += 1
                 
     img.save(png_filename, "PNG")
-    print(f"Your Image is Reeady Naz!. Name of image:'{png_filename}' ")
+    print(f"Your Image is Reeady Naz! Name of image:'{png_filename}' ")
 
 
-convert_txt_to_png("image_00.txt", "filtered_output.png")
+convert_txt_to_png("image_26.txt", "output_image_26.png")
