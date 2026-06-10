@@ -14,6 +14,7 @@ architecture RTL of img_processing_TB is
     constant c_IMG_HEIGHT           :   integer                 :=480;
     constant c_IMG_SIZE             :   integer                 :=c_IMG_WIDTH * c_IMG_HEIGHT; --307200 pixels
     constant c_ADDR_BIT_WIDTH       :   integer                 :=19;
+    constant c_DATA_WIDTH           :   integer                 :=24; --determined based on RGB color format, could be 8, 12, 16, 24
 
     --Input signals
     signal i_clk50_TB               :   std_logic               := '0';
@@ -21,22 +22,22 @@ architecture RTL of img_processing_TB is
     signal i_reset_TB               :   STD_LOGIC               :='0';
 
     --Wiring signals and constants
-    signal w_clk25_TB               :   std_logic               := '0';
-    signal w_x_TB                   :   unsigned(9 downto 0)    := (others => '0');
-    signal w_y_TB                   :   unsigned(9 downto 0)    := (others => '0');
-    signal w_DE_TB                  :   STD_LOGIC               :='0';
-    signal r_rom_addr_TB            :   unsigned(c_ADDR_BIT_WIDTH -1 downto 0)  :=(others=>'0');   
-	signal r_real_addr_int_TB       :   integer range 0 to c_IMG_SIZE-1         :=0;
-    signal r_real_rom_addr_TB       :   unsigned(c_ADDR_BIT_WIDTH -1 downto 0)  :=(others=>'0');
-    signal r_mirror_addr_int_TB     :   integer range 0 to c_IMG_SIZE-1         :=0;
-    signal r_mirror_rom_addr_TB     :   unsigned(c_ADDR_BIT_WIDTH -1 downto 0)  :=(others=>'0');
-    signal r_pixelize_addr_int_TB   :   integer range 0 to c_IMG_SIZE-1         :=0;
-    signal r_pixelize_rom_addr_TB   :   unsigned(c_ADDR_BIT_WIDTH -1 downto 0)  :=(others=>'0');
-    signal w_rom_video332_TB        :   STD_LOGIC_VECTOR(7 downto 0)            := (others => '0');
-    signal w_rom_video888_TB        :   unsigned(23 downto 0)                   := (others => '0');
+    signal w_clk25_TB               :   std_logic                                   := '0';
+    signal w_x_TB                   :   unsigned(9 downto 0)                        := (others => '0');
+    signal w_y_TB                   :   unsigned(9 downto 0)                        := (others => '0');
+    signal w_DE_TB                  :   STD_LOGIC                                   :='0';
+    signal r_rom_addr_TB            :   unsigned(c_ADDR_BIT_WIDTH -1 downto 0)      :=(others=>'0');   
+	signal r_real_addr_int_TB       :   integer range 0 to c_IMG_SIZE-1             :=0;
+    signal r_real_rom_addr_TB       :   unsigned(c_ADDR_BIT_WIDTH -1 downto 0)      :=(others=>'0');
+    signal r_mirror_addr_int_TB     :   integer range 0 to c_IMG_SIZE-1             :=0;
+    signal r_mirror_rom_addr_TB     :   unsigned(c_ADDR_BIT_WIDTH -1 downto 0)      :=(others=>'0');
+    signal r_pixelize_addr_int_TB   :   integer range 0 to c_IMG_SIZE-1             :=0;
+    signal r_pixelize_rom_addr_TB   :   unsigned(c_ADDR_BIT_WIDTH -1 downto 0)      :=(others=>'0');
+    signal w_rom_video_TB           :   STD_LOGIC_VECTOR(c_DATA_WIDTH-1 downto 0)   := (others => '0');
+    --signal w_rom_video888_TB        :   unsigned(23 downto 0)                       := (others => '0');
 
     --Output signal
-    signal o_effected_pixel_TB      :   unsigned(23 downto 0)                   := (others => '0');
+    signal o_effected_pixel_TB      :   unsigned(23 downto 0)                       := (others => '0');
 
     begin
         --------------------------------
@@ -96,20 +97,27 @@ architecture RTL of img_processing_TB is
         --Read the Image From ROM
         ----------------------------
         read_the_mif_file: entity work.picture_reader_TB
+		  generic map (
+				g_DATA_WIDTH => c_DATA_WIDTH
+			)
         port map(
             clk => i_clk50_TB,
             addrs => r_rom_addr_TB,
-            q  => w_rom_video332_TB
+            q  => w_rom_video_TB
         );
 
+        --my FPGA doesn't have enough BRAM, so i didn't able to stor my picture with the RGB24 clor format
+        --so i convert my picture to RGB888, i did store it into BRAM, and then i used the module below to convert RGB8 to RGB24
+        --but for the purpose of simulation, i am going to use RGB24, since there is no limitation.
+        --if you want to use RGB8, uncomment this module.
         ------------------------------------------
         --Convert RGB332 to RGB888
         ------------------------------------------
-        convert_RGB332_to_RGB888: entity work.RGB332_to_RGB888
-        port map(
-            i_RGB332 => unsigned(w_rom_video332_TB),
-            o_RGB888 => w_rom_video888_TB
-        );
+        --convert_RGB332_to_RGB888: entity work.RGB332_to_RGB888
+        --port map(
+        --    i_RGB332 => unsigned(w_rom_video_TB),
+        --    o_RGB888 => w_rom_video888_TB
+        --);
 
         ---------------------------
         --Apply Effect on Image 
@@ -120,7 +128,7 @@ architecture RTL of img_processing_TB is
             i_select_effect => i_select_effect_TB,
             i_x => w_x_TB,
             i_y => w_y_TB,
-            i_RGB888 => unsigned(w_rom_video888_TB),
+            i_RGB888 => unsigned(w_rom_video_TB),
             o_pixel => o_effected_pixel_TB
         );
 
@@ -137,9 +145,9 @@ architecture RTL of img_processing_TB is
             alias pixel_b is o_effected_pixel_TB(7 downto 0);
         begin
 
-            file_open(write_file, "image_00.txt", WRITE_MODE);
+            file_open(write_file, "image_26.txt", WRITE_MODE);
             
-            i_select_effect_TB <= "00000";
+            i_select_effect_TB <= "11010";
             i_reset_TB <= '1';
             wait for 100 ns;
             i_reset_TB <= '0';
