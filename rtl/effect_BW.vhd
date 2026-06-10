@@ -4,19 +4,19 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity effect_BW is
     generic (
-        g_THRESHOLD     :   integer     :=5 --could be a number between 0 to 17
+        g_THRESHOLD     :   integer     :=225 --could be a number between 0 to 765
     );
     port (
-        i_RGB332    :   in      unsigned(7 downto 0);
+        i_RGB888    :   in      unsigned(23 downto 0);
         o_Pixel     :   out     unsigned(23 downto 0)
     );
 end effect_BW;
 
 architecture RTL of effect_BW is
-    signal Sum_RGB    :   integer range 0 to 17   := 0;
+    signal Sum_RGB    :   integer range 0 to 765  := 0;
     begin
         
-        Sum_RGB <= to_integer(i_RGB332(7 downto 5)) + to_integer(i_RGB332(4 downto 2)) + to_integer(i_RGB332(1 downto 0));
+        Sum_RGB <= to_integer(i_RGB888(23 downto 16)) + to_integer(i_RGB888(15 downto 8)) + to_integer(i_RGB888(7 downto 0));
 
         ---------------------------------
         --Black-White Threshold Effect

@@ -5,7 +5,7 @@ use IEEE.NUMERIC_STD.ALL;
 entity read_rom is
     port (
         i_clk50         :   in      STD_LOGIC;
-        i_select_effect :   in      unsigned(4 downto 0);
+        i_select_addr   :   in      unsigned(4 downto 0);
         i_x             :   in      unsigned(9 downto 0);
         i_y             :   in      unsigned(9 downto 0);
 		o_rom_video     :   out     STD_LOGIC_VECTOR(7 downto 0)
@@ -19,8 +19,6 @@ architecture RTL of read_rom is
     constant c_IMG_SIZE         :   integer     :=c_IMG_WIDTH * c_IMG_HEIGHT; --307200 pixels
     constant c_ADDR_BIT_WIDTH   :   integer     :=19; --Number of bits required to represent pixels from 0 to 307200
     constant c_RGB_BIT_WIDTH    :   integer     :=8;
-    
-
 	 
     signal r_addr_int           :   integer range 0 to c_IMG_SIZE-1                 :=0;
     signal r_rom_addr           :   STD_LOGIC_VECTOR(c_ADDR_BIT_WIDTH -1 downto 0)  :=(others=>'0');   
@@ -100,8 +98,8 @@ architecture RTL of read_rom is
         r_pixelize_addr_int <= to_integer(i_y(i_y'left downto 2) & "00")* c_IMG_WIDTH + to_integer(i_x(i_x'left downto 2) & "00");
         r_pixelize_rom_addr <= STD_LOGIC_VECTOR(to_unsigned(r_pixelize_addr_int, r_pixelize_rom_addr'length));
 
-		r_rom_addr <= r_mirror_rom_addr when i_select_effect = "10110" else
-						r_pixelize_rom_addr when i_select_effect = "10111" else
+		r_rom_addr <= r_mirror_rom_addr when i_select_addr = "00001" else
+					    r_pixelize_rom_addr when i_select_addr = "00010" else
 						r_real_rom_addr;
 
         -----------------------

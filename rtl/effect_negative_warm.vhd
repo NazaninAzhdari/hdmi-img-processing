@@ -7,7 +7,7 @@ entity effect_negative_warm is
         g_WARM_TINT     :   integer     :=50   --could be a number between 0 to 255
     );
     port (
-        i_RGB332    :   in      unsigned(7 downto 0);
+        i_RGB888    :   in      unsigned(23 downto 0);
         o_Pixel     :   out     unsigned(23 downto 0)
     );
 end effect_negative_warm;
@@ -19,11 +19,11 @@ architecture RTL of effect_negative_warm is
     
     begin
         -----------------------------------------------------
-        --Convert RGB332 to RGB888 by replicating the bits
+        --Assign RGB888 to corrosponding color channels
         -----------------------------------------------------
-        r_Red8 <= i_RGB332(7 downto 5) & i_RGB332(7 downto 5) & i_RGB332(7 downto 6);
-        r_Green8 <= i_RGB332(4 downto 2) & i_RGB332(4 downto 2) & i_RGB332(4 downto 3);
-        r_Blue8 <= i_RGB332(1 downto 0) & i_RGB332(1 downto 0) & i_RGB332(1 downto 0) & i_RGB332(1 downto 0);
+        r_Red8 <= i_RGB888(23 downto 16);
+        r_Green8 <= i_RGB888(15 downto 8);
+        r_Blue8 <= i_RGB888(7 downto 0);
 
         --------------------------
         --Warm Negative Effect

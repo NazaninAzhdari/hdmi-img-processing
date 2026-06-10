@@ -5,7 +5,7 @@ use IEEE.NUMERIC_STD.ALL;
 entity effect_TV_noise is
     port (
         i_clk50     :   in      STD_LOGIC;
-        i_RGB332    :   in      unsigned(7 downto 0);
+        i_RGB888    :   in      unsigned(23 downto 0);
         o_Pixel     :   out     unsigned(23 downto 0)
     );
 end effect_TV_noise;
@@ -21,12 +21,12 @@ architecture RTL of effect_TV_noise is
     signal B_noise    :   unsigned(7 downto 0)    :=(others=>'0');
 
     begin
-        ---------------------------------------------------
-        --Converting a 8-bit RGB image to 24-bit RGB Scale
-        ---------------------------------------------------
-        r_Red8 <= to_unsigned((to_integer(i_RGB332(7 downto 5)) * 36), 8); 
-        r_Green8 <= to_unsigned((to_integer(i_RGB332(4 downto 2)) * 36) , 8);
-        r_Blue8 <= to_unsigned((to_integer(i_RGB332(1 downto 0)) * 85) , 8);
+        -----------------------------------------------------
+        --Assign RGB888 to corrosponding color channels
+        -----------------------------------------------------
+        r_Red8 <= i_RGB888(23 downto 16);
+        r_Green8 <= i_RGB888(15 downto 8);
+        r_Blue8 <= i_RGB888(7 downto 0);
 
         -------------------
         -- Noise scaling

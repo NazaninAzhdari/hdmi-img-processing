@@ -17,13 +17,14 @@ entity img_processing_top is
 end img_processing_top;
 
 architecture RTL of img_processing_top is
-constant c_DEBOUNCE_LIMIT   :   integer     :=5000000; --0.1 Sec. with 50MHz Clock
-    signal w_clk25              :   STD_LOGIC                                       :='0';
-    signal w_X, w_y             :   unsigned(9 downto 0)                            :=(others=>'0');
-    signal w_rom_video          :   STD_LOGIC_VECTOR(7 downto 0)    :=(others=>'0');  
-	signal w_DE                 :   STD_LOGIC                                       :='0';
-    signal w_effected_pixel     :   unsigned(23 downto 0)                           :=(others=>'0');
-    signal w_select_effect      :   unsigned(4 downto 0)                            :=(others=>'0');
+    constant c_DEBOUNCE_LIMIT   :   integer                      :=5000000; --0.1 Sec. with 50MHz Clock
+    signal w_clk25              :   STD_LOGIC                    :='0';
+    signal w_X, w_y             :   unsigned(9 downto 0)         :=(others=>'0');
+    signal w_rom_video332       :   STD_LOGIC_VECTOR(7 downto 0) :=(others=>'0'); 
+    signal w_rom_video888       :   unsigned(23 downto 0)        :=(others=>'0');  
+	signal w_DE                 :   STD_LOGIC                    :='0';
+    signal w_effected_pixel     :   unsigned(23 downto 0)        :=(others=>'0');
+    signal w_select_effect      :   unsigned(4 downto 0)         :=(others=>'0');
 
     begin
         ----------------------------------
@@ -123,10 +124,19 @@ constant c_DEBOUNCE_LIMIT   :   integer     :=5000000; --0.1 Sec. with 50MHz Clo
         read_pixel_from_BRAM: entity work.read_rom
         port map(
             i_clk50 => i_clk50,
-            i_select_effect => w_select_effect,
+            i_select_addr => w_select_effect,
             i_x => w_x,
             i_y => w_y,
-            o_rom_video => w_rom_video
+            o_rom_video => w_rom_video332
+        );
+
+        ------------------------------------------
+        --Convert RGB332 to RGB888
+        ------------------------------------------
+        convert_RGB332_to_RGB888: entity work.RGB332_to_RGB888
+        port map(
+            i_RGB332 => unsigned(w_rom_video332),
+            o_RGB888 => w_rom_video888
         );
 
         ---------------------------
@@ -138,7 +148,7 @@ constant c_DEBOUNCE_LIMIT   :   integer     :=5000000; --0.1 Sec. with 50MHz Clo
             i_select_effect => w_select_effect,
             i_x => w_x,
             i_y => w_y,
-            i_RGB332 => unsigned(w_rom_video),
+            i_RGB888 => w_rom_video888,
             o_pixel => w_effected_pixel
         );
 

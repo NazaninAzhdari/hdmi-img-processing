@@ -4,25 +4,27 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity effect_invert_gray_channelMix  is
     port (
-        i_RGB332    :   in      unsigned(7 downto 0);
+        i_RGB888    :   in      unsigned(23 downto 0);
         o_Pixel     :   out     unsigned(23 downto 0)
     );
 end effect_invert_gray_channelMix ;
 
 architecture RTL of effect_invert_gray_channelMix is
+    signal r_RGB332         :   unsigned(7 downto 0)        :=(others=>'0');
     begin
         --------------------------------------------------
         --Inversion of the Channel-Mix Gray-Scale Effect
         --------------------------------------------------
-        --Note that: i_RGB332 == 3-bit-Red & 3-bit_Green & 2-bit_Blue
+        --Note that: i_RGB888 == 8-bit-Red & 8-bit_Green & 8-bit_Blue
+        r_RGB332 <= i_RGB888(23 downto 21) & i_RGB888(15 downto 13) & i_RGB888(7 downto 6);
 
         --To get this effect we mix three channels together and then invert the result.
         --8-bit Red     <= not (3-bit-Red & 3-bit_Green & 2-bit_Blue)
         --8-bit Green   <= not (3-bit-Red & 3-bit_Green & 2-bit_Blue)
         --8-bit Blue    <= not (3-bit-Red & 3-bit_Green & 2-bit_Blue)
         
-        o_pixel(23 downto 16) <= not i_RGB332;
-        o_pixel(15 downto 8)  <= not i_RGB332;
-        o_pixel(7 downto 0)   <= not i_RGB332;
+        o_pixel(23 downto 16) <= not r_RGB332;
+        o_pixel(15 downto 8)  <= not r_RGB332;
+        o_pixel(7 downto 0)   <= not r_RGB332;
 
     end RTL;
