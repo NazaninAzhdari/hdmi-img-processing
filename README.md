@@ -4,20 +4,19 @@ This design shows how we can read an image from BRAM, apply visual effects in re
 For this project, I chose to use a photo of myself (from when I was young and beautiful, hahaha), because there’s something special about seeing your own face transformed by hardware you programmed. After converting the image into a .mif file (my_picture_RGB8.mif) and loading it into the FPGA’s Block RAM, I built a series of VHDL modules to apply various visual effects.  
 It would’ve been easy to use a phone app for similar edits, but creating these effects in VHDL and watching them run on real hardware is a completely different experience. I did really LOVE it. =)))
 
----
-## Note
-**The demonstration images in this README were captured from the simulator using the full **RGB24** color format. Because the Cyclone V GX FPGA has limited Block RAM (BRAM) capacity, I configured the hardware implementation to use a compressed 8-bit (RGB332) format for image storage within the ROM.** 
-
-Although the system expands this 8-bit data back to 24-bit (RGB888) before displaying it on the HDMI monitor, the simulation images maintain higher visual quality because they were processed without any initial color reduction. As a result, while the system functions perfectly in real-time, **the colors on the physical monitor may appear slightly less vibrant than those seen in the high-fidelity simulation results.**
 
 ---
 
 ## Project Overview
 This project is a hardware image-processing pipeline built in VHDL. It stores a static image in BRAM, reads pixels in sync with display timing, converts the stored compact color format into a full-color representation, and applies one of many visual effects before sending the result to a monitor.  
 The image is first converted by Python into a small 8-bit RGB332 format and stored as a `.mif` file. In the FPGA, each pixel is read in real time and expanded into a 24-bit RGB888 color value so the effect modules can process it with greater precision.  
-The system can display the original image, mirrored image, pixelized image, or many color and stylized filter effects. It also supports simulation for verification before deploying to the hardware.
-
-
+The system can display the original image, mirrored image, pixelized image, or many color and stylized filter effects. It also supports simulation for verification before deploying to the hardware.  
+  
+  
+  
+**Note!**  
+**The demonstration images in this README were captured from the simulator using the full **RGB24** color format. Because the Cyclone V GX FPGA has limited Block RAM (BRAM) capacity, I configured the hardware implementation to use a compressed 8-bit (RGB332) format for image storage within the ROM.** Although the system expands this 8-bit data back to 24-bit (RGB888) before displaying it on the HDMI monitor, the simulation images maintain higher visual quality because they were processed without any initial color reduction. As a result, while the system functions perfectly in real-time, **the colors on the physical monitor may appear slightly less vibrant than those seen in the high-fidelity simulation results.**  
+  
 ---
 ## Effect Module Details
 In this digital image processing system, each visual effect is implemented using specific mathematical logic or bit manipulation. The system processes **24-bit RGB** data (8 bits each for Red, Green, and Blue) to generate the output for each module.  
@@ -148,7 +147,3 @@ Below are the formulas and logic used for each effect:
   
 ---
 
-## Notes
-**The images in this README were generated using the simulator and RGB24 color format.**
-**Since my FPGA dosn't have enough BRAM, I configured the FPGA with RGB8 color format, so the images shown in hdmi monitor 
-has been generated from RGB8 and displyed on monitor with RGB24 color format. for this reason the simulation images have better quality, since i dident reduced the color format. but images on hdmi monitor are a bit low quality in the sence of color.
