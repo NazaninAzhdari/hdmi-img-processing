@@ -115,7 +115,7 @@ Below are the formulas and logic used for each effect:
   
 
 ---
-## Hardware Deployment / Setup Guide
+## Setup Guide
 
 ### 1) Prepare the Image
 - Use the Python script `scrpits/png_to_mif_converter.py`.
@@ -126,6 +126,7 @@ Below are the formulas and logic used for each effect:
 ### 2) Compile the code and configure the FPGA
 - Open the Quartus project and put the `rtl/` files into project dirctory.
 - Run synthesis and Generate the programming file and program the FPGA.
+- [Click here to open the Pinout-Table.CSV](https://github.com/NazaninAzhdari/hdmi_img_processing/blob/main/doc/pinout/dino_game.csv)  
 
 ### 3) Select Effects
 - Use the input switches to set the effect code.
