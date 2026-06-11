@@ -5,6 +5,12 @@ For this project, I chose to use a photo of myself (from when I was young and be
 It would’ve been easy to use a phone app for similar edits, but creating these effects in VHDL and watching them run on real hardware is a completely different experience. I did really LOVE it. =)))
 
 ---
+## Note
+**The demonstration images in this README were captured from the simulator using the full **RGB24** color format. Because the Cyclone V GX FPGA has limited Block RAM (BRAM) capacity, I configured the hardware implementation to use a compressed 8-bit (RGB332) format for image storage within the ROM.** 
+
+Although the system expands this 8-bit data back to 24-bit (RGB888) before displaying it on the HDMI monitor, the simulation images maintain higher visual quality because they were processed without any initial color reduction. As a result, while the system functions perfectly in real-time, **the colors on the physical monitor may appear slightly less vibrant than those seen in the high-fidelity simulation results.**
+
+---
 
 ## Project Overview
 This project is a hardware image-processing pipeline built in VHDL. It stores a static image in BRAM, reads pixels in sync with display timing, converts the stored compact color format into a full-color representation, and applies one of many visual effects before sending the result to a monitor.  
@@ -126,7 +132,7 @@ Below are the formulas and logic used for each effect:
 ### 2) Compile the code and configure the FPGA
 - Open the Quartus project and put the `rtl/` files into project dirctory.
 - Run synthesis and Generate the programming file and program the FPGA.
-- [Click here to open the Pinout-Table.CSV](https://github.com/NazaninAzhdari/hdmi_img_processing/blob/main/doc/pinout/dino_game.csv)  
+- [Click here to open the Pinout-Table.CSV](https://github.com/NazaninAzhdari/hdmi-img-processing/blob/main/doc/pinout/img_processing.csv)  
 
 ### 3) Select Effects
 - Use the input switches to set the effect code.
@@ -144,3 +150,5 @@ Below are the formulas and logic used for each effect:
 
 ## Notes
 **The images in this README were generated using the simulator and RGB24 color format.**
+**Since my FPGA dosn't have enough BRAM, I configured the FPGA with RGB8 color format, so the images shown in hdmi monitor 
+has been generated from RGB8 and displyed on monitor with RGB24 color format. for this reason the simulation images have better quality, since i dident reduced the color format. but images on hdmi monitor are a bit low quality in the sence of color.
