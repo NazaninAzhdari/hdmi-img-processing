@@ -68,15 +68,6 @@ architecture TB of picture_reader_TB is
 			elsif c_HEX_LIMIT = 2 then	
 					v := bi(1) & bi(2);
 			end if;
-			--v:= (digit(1) * (16**5)) +(digit(2) * (16**4)) + (digit(3) * (16**3)) +(digit(4) * (16**2)) + (digit(5) * (16**1)) + digit(6);
-        --Convert Hex string to integer
-        --for exmple for 3 hex string:
-        --v  := (digit(1) * 16^1) + (digit(0) * 16*0)
-        --for i in 1 to c_HEX_LIMIT-1 loop
-        --    v:= v + (digit(i) * (16**i));
-        --end loop;
-
-        --convert integer to STD_LOGIC_VECTOR
         return v;
     end function;
 

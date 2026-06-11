@@ -106,8 +106,8 @@ architecture RTL of img_processing_TB is
             q  => w_rom_video_TB
         );
 
-        --my FPGA doesn't have enough BRAM, so i didn't able to stor my picture with the RGB24 clor format
-        --so i convert my picture to RGB888, i did store it into BRAM, and then i used the module below to convert RGB8 to RGB24
+        --my FPGA doesn't have enough BRAM, so i didn't able to stor my picture with the RGB24 clor format.
+        --so i convert my picture to RGB8, i did store it into BRAM, and then i used the module below to convert RGB8 to RGB24
         --but for the purpose of simulation, i am going to use RGB24, since there is no limitation.
         --if you want to use RGB8, uncomment this module.
         ------------------------------------------
