@@ -1,23 +1,19 @@
 # HDMI Image Processing on Cyclone V GX
 
-Welcome to the **HDMI Image Processing** project. This design shows how an FPGA can read an image from memory, apply visual effects in real time, and drive a display over HDMI using a Cyclone V GX device.
+This design shows how we can read an image from BRAM, apply visual effects in real time, and drive a display over HDMI using a Cyclone V GX FPGA.  
+For this project, I chose to use a photo of myself (from when I was young and beautiful, hahaha), because there’s something special about seeing your own face transformed by hardware you programmed. After converting the image into a .mif file (my_picture_RGB8.mif) and loading it into the FPGA’s Block RAM, I built a series of VHDL modules to apply various visual effects.  
+It would’ve been easy to use a phone app for similar edits, but creating these effects in VHDL and watching them run on real hardware is a completely different experience. I did really LOVE it. =)))
 
 ---
 
 ## Project Overview
-This project is a hardware image-processing pipeline built in VHDL. It stores a static image in BRAM, reads pixels in sync with display timing, converts the stored compact color format into a full-color representation, and applies one of many visual effects before sending the result to a monitor.
-
-The image is first converted by Python into a small 8-bit RGB332 format and stored as a `.mif` file. In the FPGA, each pixel is read in real time and expanded into a 24-bit RGB888 color value so the effect modules can process it with greater precision.
-
+This project is a hardware image-processing pipeline built in VHDL. It stores a static image in BRAM, reads pixels in sync with display timing, converts the stored compact color format into a full-color representation, and applies one of many visual effects before sending the result to a monitor.  
+The image is first converted by Python into a small 8-bit RGB332 format and stored as a `.mif` file. In the FPGA, each pixel is read in real time and expanded into a 24-bit RGB888 color value so the effect modules can process it with greater precision.  
 The system can display the original image, mirrored image, pixelized image, or many color and stylized filter effects. It also supports simulation for verification before deploying to the hardware.
 
 
 ---
 In this digital image processing system, each visual effect is implemented using specific mathematical logic or bit manipulation. The system processes **24-bit RGB** data (8 bits each for Red, Green, and Blue) to generate the output for each module.  
-  
-This is the original image that I have stored in the BRAM:  
-![Original Image](https://github.com/NazaninAzhdari/hdmi-img-processing/blob/main/doc/in/png/my_picture.png)  
-
 Below are the formulas and logic used for each effect:
 
 
@@ -62,6 +58,7 @@ Below are the formulas and logic used for each effect:
 ![Posterize and Tint Effects](https://github.com/NazaninAzhdari/hdmi-img-processing/blob/main/assets/Slide5.PNG)  
   
 
+
 ### **Stylistic and Color Conversion Effects**
 *   **Solarize (`effect_solarize`):** This effect inverts a pixel’s color only if it is already very bright (above a threshold of 225).
     *   $\text{If } (R+G+B) > g_THRESHOLD \text{ then } (255-R, 255-G, 255-B), \text{ else original}$  
@@ -74,6 +71,7 @@ Below are the formulas and logic used for each effect:
     *   $Channel_{out} = 255 - Channel_{in}$  
 ![Stylistic and Color Conversion Effects](https://github.com/NazaninAzhdari/hdmi-img-processing/blob/main/assets/Slide6.PNG)  
   
+
 
 ### **Coordinate and Dynamic Effects**
 *   **Checkerboard (`effect_checkerboard`):** It looks at the 5th bit of the X and Y coordinates. If you XOR these two bits and get '1', it shows the image; if '0', it shows black. This creates $32 \times 32$ pixel squares.
@@ -95,4 +93,16 @@ Below are the formulas and logic used for each effect:
 *   **BBCE (Bright-Biased Color Expansion):** This logic expands the color range specifically in the bright areas of the image to make highlights pop more.  
 
 *   **DBCE (Dark-Biased Color Expansion):** This expands the range in the darker areas of the image to show more detail in shadows.  
+
+*   **Mirror Effect:** The Mirror effect creates a horizontal reflection by reversing the order in which pixels are read from each row of the memory. Normally, the system reads pixels from left to right ($0$ to $639$). To mirror the image, the system instead reads from right to left. When the screen wants to display the leftmost pixel ($X=0$), the system fetches the rightmost pixel from the ROM ($X=639$).
+*   **Formula:**
+    $$Address = ((\text{Image\_Width} - 1) - X) + (Y \times \text{Image\_Width})$$
+    In your code, this is implemented as:
+    $$Address = (639 - X) + (Y \times 640)$$.
+
+*   **Pixelize Effect:** The Pixelize effect creates a "mosaic" or "blocky" look by forcing the system to display the same pixel value for a small square area (e.g., a $10 \times 10$ block).This is achieved by "quantizing" the coordinates. Instead of updating the memory address for every single pixel, the system uses integer division and multiplication to group coordinates together. This causes the $X$ and $Y$ values to stay the same for a specific range, effectively "stretching" one pixel across a larger block of the screen.
+*   **Formula:**
+    $$Address = \left(\left\lfloor \frac{X}{10} \right\rfloor \times 10\right) + \left(\left\lfloor \frac{Y}{10} \right\rfloor \times 10 \times \text{Image\_Width}\right)$$
+    In hardware, the integer division $(\div 10)$ removes the remainder, and the multiplication $(\times 10)$ resets the coordinate to the start of the current 10-pixel block. This ensures that for every pixel inside a $10 \times 10$ area, the system reads the exact same data from the ROM.
+
 ![Expansion Effects](https://github.com/NazaninAzhdari/hdmi-img-processing/blob/main/assets/Slide7.PNG)  
