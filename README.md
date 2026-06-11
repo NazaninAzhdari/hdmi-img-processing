@@ -23,16 +23,16 @@ Below are the formulas and logic used for each effect:
 
 ### **Intensity and Contrast Effects**
 *   **Brightness (`effect_bright`):** Each color channel is increased by a constant value ($g\_BRIGHT = 128$). The system adds this to the input and "clamps" the result at 255 to avoid errors.
-    *   $Channel_{out} = \min(Channel_{in} + 128, 255)$   
+    *   $Channel_{out} = Channel_{in} + g\_BRIGHT$   
     
 *   **Darkness (`effect_dark`):** This is the opposite of brightness. It subtracts a value ($g\_DARK = 128$) and ensures the result does not go below 0.
-    *   $Channel_{out} = \max(Channel_{in} - 128, 0)$  
+    *   $Channel_{out} = Channel_{in} - g\_DARK$ 
   
 *   **Contrast (`effect_contrast`):** This increases the difference between light and dark areas. It uses a midpoint (128) and a multiplier ($g\_CONTRAST = 2$).
-    *   $Channel_{out} = 128 + (Channel_{in} - 128) \times 2$  
+    *   $Channel_{out} = 128 + (Channel_{in} - 128) \times g\_CONTRAST$  
   
 *   **Fade (`effect_fade`):** This reduces the intensity of the image by keeping only the most significant bits and masking the rest. It essentially "mutes" the colors by shifting the data.
-    *   $Channel_{out} = (Channel_{in} \text{ bitwise AND } 11100000) \text{ then shifted}$  
+    *   $Channel_{out} = (Channel_{in} \text{ AND } 11100000) $  
   
 ![Intensity and Contrast Effects](https://github.com/NazaninAzhdari/hdmi-img-processing/blob/main/assets/Slide1.PNG)  
   
@@ -64,7 +64,7 @@ Below are the formulas and logic used for each effect:
 
 ### **Stylistic and Color Conversion Effects**
 *   **Solarize (`effect_solarize`):** This effect inverts a pixel’s color only if it is already very bright (above a threshold of 225).
-    *   $\text{If } (R+G+B) > 225 \text{ then } (255-R, 255-G, 255-B), \text{ else original}$  
+    *   $\text{If } (R+G+B) > g_THRESHOLD \text{ then } (255-R, 255-G, 255-B), \text{ else original}$  
 
 *   **Warm Negative (`effect_negative_warm`):** It first inverts the colors (negative) and then adds a warm tint offset to the result.
   
