@@ -12,8 +12,8 @@ This project is a hardware image-processing pipeline built in VHDL. It stores a 
 The image is first converted by Python into a small 8-bit RGB332 format and stored as a `.mif` file. In the FPGA, each pixel is read in real time and expanded into a 24-bit RGB888 color value so the effect modules can process it with greater precision.  
 The system can display the original image, mirrored image, pixelized image, or many color and stylized filter effects. It also supports simulation for verification before deploying to the hardware.  
   
-## Watch the Demo on youtube (click on the picture below):  
-[![Video](https://img.youtube.com/vi/sbKIayvrYg4/maxresdefault.jpg)](https://youtu.be/sbKIayvrYg4)  
+## Watch my video on youtube (click on the picture below):  
+[![Video](https://img.youtube.com/vi/r3zzLkPPhf4/maxresdefault.jpg)](https://youtu.be/r3zzLkPPhf4)  
   
   
 **Note!**  
