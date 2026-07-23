@@ -1,5 +1,23 @@
-# Image Processing on FPGA
+<div align="center">
+  <h1>Image Processing on FPGA</h1>
+</div>
 
+<p align="center" style="margin-top: 0;">
+  <a href="https://github.com/NazaninAzhdari/hdmi-img-processing" target="_blank" style="text-decoration: none;">
+    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg"
+         alt="GitHub Repo"
+         width="32"
+         height="32"
+         style="vertical-align: middle;">
+    <span style="font-size: 16px; margin-left: 8px; vertical-align: middle;">
+      View the code on GitHub
+    </span>
+  </a>
+</p>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+---
 This design shows how we can read an image from BRAM, apply visual effects in real time, and drive a display over HDMI using an FPGA.  
 For this project, I chose to use a photo of myself (from when I was young and beautiful, hahaha), because there’s something special about seeing your own face transformed by hardware you programmed. After converting the image into a .mif file (my_picture_RGB8.mif) and loading it into the FPGA’s Block RAM, I built a series of VHDL modules to apply various visual effects.  
 It would’ve been easy to use a phone app for similar edits, but creating these effects in VHDL and watching them run on real hardware is a completely different experience. I did really LOVE it. =)))
@@ -17,7 +35,7 @@ This project is a hardware image-processing pipeline built in VHDL. It stores a 
 The image is first converted by Python into a small 8-bit RGB332 format and stored as a `.mif` file. In the FPGA, each pixel is read in real time and expanded into a 24-bit RGB888 color value so the effect modules can process it with greater precision.  
 The system can display the original image, mirrored image, pixelized image, or many color and stylized filter effects. It also supports simulation for verification before deploying to the hardware.  
 
-![Block Diagram](https://github.com/NazaninAzhdari/hdmi-img-processing/blob/main/assets/Block_Diagram.png)  
+![Block Diagram](https://nazaninazhdari.github.io/hdmi-img-processing/assets/Block_Diagram.png)  
 
 ---
 ## Effect Module Details
@@ -38,7 +56,7 @@ Below are the formulas and logic used for each effect:
 *   **Fade (`rtl/effects/effect_fade`):** This reduces the intensity of the image by keeping only the most significant bits and masking the rest. It essentially "mutes" the colors by shifting the data.
     *   $Channel_{out} = (Channel_{in} \text{ AND } 11100000) $  
   
-![Intensity and Contrast Effects](https://github.com/NazaninAzhdari/hdmi-img-processing/blob/main/assets/Slide1.PNG)  
+![Intensity and Contrast Effects](https://nazaninazhdari.github.io/hdmi-img-processing/assets/Slide1.PNG)  
   
 ---
 
@@ -54,7 +72,7 @@ Below are the formulas and logic used for each effect:
 *   **Black and White (`rtl/effects/effect_BW`):** This compares the total brightness to a threshold ($g-THRESHOLD = 225$). If the sum of R+G+B is higher, the pixel becomes pure white; otherwise, it is pure black.
     *   $\text{If } (R+G+B) > g-THRESHOLD$   $\text{ then White, else Black}$  
   
-![Black-white and Grayscale Effects](https://github.com/NazaninAzhdari/hdmi-img-processing/blob/main/assets/Slide2.PNG)  
+![Black-white and Grayscale Effects](https://nazaninazhdari.github.io/hdmi-img-processing/assets/Slide2.PNG)  
   
 ---
 
@@ -65,13 +83,13 @@ Below are the formulas and logic used for each effect:
    
 *   **Posterize (Warm/Cool):** These modules "chop" the lower bits of the color data to reduce the total number of colors (creating a "poster" look) and then apply a warm or cool color offset.  
   
-![Posterize and Tint Effects](https://github.com/NazaninAzhdari/hdmi-img-processing/blob/main/assets/Slide5.PNG)  
+![Posterize and Tint Effects](https://nazaninazhdari.github.io/hdmi-img-processing/assets/Slide5.PNG)  
   
 ---
 
 ### **Stylistic and Color Conversion Effects**
 *   **Solarize (`rtl/effects/effect_solarize`):** This effect inverts a pixel’s color only if it is already very bright (above a threshold of 225).
-    *   $\text{If } (R+G+B) > $g-THRESHOLD$   $\text{ then } (255-R, 255-G, 255-B), \text{ else original}$  
+    *   $\text{If } (R+G+B) >g-THRESHOLD$   $\text{ then } (255-R, 255-G, 255-B), \text{ else original}$  
 
 *   **Warm Negative (`rtl/effects/effect_negative_warm`):** It first inverts the colors (negative) and then adds a warm tint offset to the result.
   
@@ -80,7 +98,7 @@ Below are the formulas and logic used for each effect:
 *   **Negative (`rtl/effects/effect_negative`):** This inverts the colors.  
     *   $Channel_{out} =$  NOT $Channel_{in}$  
   
-![Stylistic and Color Conversion Effects](https://github.com/NazaninAzhdari/hdmi-img-processing/blob/main/assets/Slide6.PNG)  
+![Stylistic and Color Conversion Effects](https://nazaninazhdari.github.io/hdmi-img-processing/assets/Slide6.PNG)  
   
 ---
 
@@ -101,8 +119,8 @@ Below are the formulas and logic used for each effect:
 
 *   **RGB Cycling (`rtl/effects/effect_RGB_cycling`):** Similar to the rainbow effect, but it "rotates" the Red, Green, and Blue channels based on the current row ($Y$) to create a moving color cycle.  
   
-![Coordinate and Dynamic Effects-1](https://github.com/NazaninAzhdari/hdmi-img-processing/blob/main/assets/Slide3.PNG)  
-![Coordinate and Dynamic Effects-2](https://github.com/NazaninAzhdari/hdmi-img-processing/blob/main/assets/Slide4.PNG)  
+![Coordinate and Dynamic Effects-1](https://nazaninazhdari.github.io/hdmi-img-processing/assets/Slide3.PNG)  
+![Coordinate and Dynamic Effects-2](https://nazaninazhdari.github.io/hdmi-img-processing/assets/Slide4.PNG)  
   
 ---
 
@@ -118,7 +136,7 @@ Below are the formulas and logic used for each effect:
     *   $Address =$ $(Y(MSB$ $downto$ $2)$ & "00" $) \times c-IMG-WIDTH + (Y(MSB$ $downto$ $2)$ & "00" $)$  
   
 
-![Expansion Effects](https://github.com/NazaninAzhdari/hdmi-img-processing/blob/main/assets/Slide7.PNG)  
+![Expansion Effects](https://nazaninazhdari.github.io/hdmi-img-processing/assets/Slide7.PNG)  
   
 
 ---
